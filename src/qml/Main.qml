@@ -184,7 +184,10 @@ ApplicationWindow {
                     root.updateWindowSize(w, h);
                 }
 
-                MementoSettings.recentFilesAdd(player.state.path);
+                if (player.state.path.length > 0)
+                {
+                    MementoSettings.recentFilesAdd(player.state.path);
+                }
 
                 player.controller.play();
             }
