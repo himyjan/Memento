@@ -61,7 +61,6 @@ Page {
                 id: languageBox
                 Layout.preferredWidth: root.preferredWidth
                 Layout.topMargin: root.groupSpacing
-                Layout.bottomMargin: root.groupSpacing
                 Layout.alignment: Qt.AlignHCenter
                 title: qsTr("Language")
 
@@ -112,7 +111,6 @@ Page {
             SettingsBox {
                 id: playerBox
                 Layout.preferredWidth: root.preferredWidth
-                Layout.topMargin: root.groupSpacing
                 Layout.bottomMargin: root.groupSpacing
                 Layout.alignment: Qt.AlignHCenter
                 title: qsTr("Update")
