@@ -37,7 +37,7 @@ QStringList GlossaryBuilder::buildGlossary(
     constexpr const char *VALUE_TYPE_STRUCTURED_CONTENT = "structured-content";
     constexpr const char *VALUE_TYPE_TEXT = "text";
 
-    basepath += QDir::separator();
+    basepath += '/';
     QStringList glossaries;
 
     for (const QJsonValue &val : definitions)

@@ -45,6 +45,30 @@ QString getProgramDirectory();
 QString getConfigDir();
 
 /**
+ * @brief The top level directory for application data.
+ *
+ * @return Path to the data directory.
+ */
+[[nodiscard]]
+QString getDataDir();
+
+/**
+ * @brief Get the application cache directory.
+ *
+ * @return Path to the application cache directory.
+ */
+[[nodiscard]]
+QString getCacheDir();
+
+/**
+ * @brief Gets the dictionary resource directory path.
+ *
+ * @return The dictionary resource directory path.
+ */
+[[nodiscard]]
+QString getDictionaryResourceDir();
+
+/**
  * @brief Get the MeCab dictionary directory if it exists.
  *
  * @return Path to the MeCab dictionary directory if it exists, empty string
@@ -77,13 +101,14 @@ QString getAnkiConfig();
 [[nodiscard]]
 QString getMpvInputConfig();
 
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
 /**
- * @brief Gets the dictionary resource directory path. Creates it if it doesn't
- * exist.
+ * @brief Get the configuration file for cached options.
  *
- * @return The dictionary resource directory path.
+ * @return Path to the config file for cached options.
  */
 [[nodiscard]]
-QString getDictionaryResourceDir();
+QString getCacheConfig();
+#endif
 
 };

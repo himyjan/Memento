@@ -25,9 +25,11 @@
 #include <QSettings>
 #include <QVariant>
 
-#if defined(Q_OS_WIN)
+#include "setting/migration.h"
+
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
 #include "util/utils.h"
-#endif // defined(Q_OS_WIN)
+#endif
 
 namespace
 {
@@ -81,27 +83,6 @@ QFont readFontSetting(
     );
 }
 
-/**
- * @brief Migrate a font setting from the version 4 format to version 5 format.
- *
- * @param settings The settings object the font to access the font.
- * @param key The key of the font setting.
- * @param defaultFont The font to return as the default.
- */
-void migrateFontSetting4To5(
-    QSettings &settings,
-    const QString &key,
-    const QFont &defaultFont)
-{
-    if (!settings.contains(key))
-    {
-        return;
-    }
-
-    const QVariant value = settings.value(key);
-    const QFont font = fontFromSettingsValue(value, defaultFont);
-    settings.setValue(key, font.toString());
-}
 
 } // namespace
 
@@ -110,7 +91,6 @@ Settings::Settings(QObject *parent) : QObject(parent)
     m_audioSource.sources = new AudioSourceModel(this);
     m_keybind.keybinds = new KeybindProfileModel(this);
 
-    updateSettings();
     load();
 }
 
@@ -169,7 +149,7 @@ void Settings::defaults()
 void Settings::loadVersion()
 {
     QSettings s;
-    m_version = s.value(Keys::Version::VERSION, 0).toUInt();
+    m_version = s.value(Keys::Version::VERSION, 0).toInt();
 }
 
 void Settings::writeVersion()
@@ -180,7 +160,11 @@ void Settings::writeVersion()
 
 void Settings::loadWindowSettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Window::GROUP);
 
     setWindowSubtitleList(
@@ -201,7 +185,11 @@ void Settings::loadWindowSettings()
 
 void Settings::writeWindowSettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Window::GROUP);
 
     s.setValue(
@@ -218,7 +206,11 @@ void Settings::writeWindowSettings()
 
 void Settings::loadInternalSettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Internal::GROUP);
 
     setInternalAutoUpdateOptInShown(
@@ -233,7 +225,11 @@ void Settings::loadInternalSettings()
 
 void Settings::writeInternalSettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Internal::GROUP);
 
     s.setValue(
@@ -246,7 +242,11 @@ void Settings::writeInternalSettings()
 
 void Settings::loadRecentSettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Recent::GROUP);
 
     m_recent.files = s.value(Keys::Recent::FILES).toStringList();
@@ -257,7 +257,11 @@ void Settings::loadRecentSettings()
 
 void Settings::writeRecentSettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Recent::GROUP);
 
     s.setValue(Keys::Recent::FILES, recentFiles());
@@ -580,7 +584,11 @@ void Settings::defaultBehaviorSettings()
 
 void Settings::loadDictionarySettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Dictionary::GROUP);
 
     QVariantList order = s.value(Keys::Dictionary::ORDER).toList();
@@ -597,7 +605,11 @@ void Settings::loadDictionarySettings()
 
 void Settings::writeDictionarySettings()
 {
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    QSettings s(DirectoryUtils::getCacheConfig(), QSettings::NativeFormat);
+#else
     QSettings s;
+#endif
     s.beginGroup(Keys::Dictionary::GROUP);
 
     QVariantList order;
@@ -2594,148 +2606,4 @@ void Settings::setOcrModel(const QString &value)
     }
     m_ocr.model = value;
     emit ocrModelChanged(m_ocr.model);
-}
-
-/* Update Version */
-
-void Settings::updateSettings()
-{
-    QSettings settings;
-    uint version = settings.value(Keys::Version::VERSION, 0).toUInt();
-    if (version == Keys::Version::CURRENT)
-    {
-        return;
-    }
-    else if (version > Keys::Version::CURRENT)
-    {
-        qWarning() << tr(
-            "The Memento settings found belong to a newer version.\n"
-            "No guarantees can be made that nothing will break or get lost."
-        );
-    }
-
-    /* Migrate the settings */
-    switch(version)
-    {
-        case 0:
-        {
-            settings.remove("interface/sublist-style");
-            [[fallthrough]];
-        }
-
-        case 1:
-        {
-            /* These paths are hardcoded because DirectoryUtils may change in
-             * the future. */
-#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
-            QDir configDir(QString(getenv("HOME")) + "/.config/memento");
-            configDir.rename(
-                "./dict/dictionaries.sqlite", "./dictionaries.sqlite"
-            );
-
-            QDir dictDir(configDir.absolutePath() + "/dict");
-            dictDir.removeRecursively();
-#elif defined(Q_OS_WIN)
-            QDir programDir(DirectoryUtils::getProgramDirectory());
-            programDir.rename(
-                ".\\config\\dict\\dictionaries.sqlite",
-                ".\\config\\dictionaries.sqlite"
-            );
-
-            QDir dictDir(
-                DirectoryUtils::getProgramDirectory() + "config\\dict"
-            );
-            dictDir.removeRecursively();
-
-            QString configPath = QDir::toNativeSeparators(
-                QStandardPaths::writableLocation(
-                    QStandardPaths::AppConfigLocation
-                )
-            );
-            configPath.chop(sizeof("memento") - 1);
-            QDir configDir(configPath);
-            configDir.removeRecursively();
-
-            programDir.rename(".\\config", configDir.absolutePath());
-#endif
-            [[fallthrough]];
-        }
-
-        case 2:
-        {
-            bool list = settings.value("search/list-result", true).toBool();
-            settings.setValue(
-                "list-result",
-                static_cast<int>(
-                    list ?
-                        Setting::GlossaryStyle::GlossaryStyleBullet :
-                        Setting::GlossaryStyle::GlossaryStyleLineBreak
-                )
-            );
-            [[fallthrough]];
-        }
-
-        case 3:
-        {
-            settings.remove("behavior/file-open-custom");
-            settings.remove("dictionaries");
-            settings.remove("interface");
-            settings.remove("search/modifier");
-            settings.remove(Keys::Window::GROUP);
-            [[fallthrough]];
-        }
-
-        case 4:
-        {
-            settings.beginGroup(Keys::Interface::GROUP);
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::Subtitle::FONT,
-                Keys::Interface::Subtitle::FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SEARCH_EXPRESSION_FONT,
-                Keys::Interface::SEARCH_EXPRESSION_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SEARCH_READING_FONT,
-                Keys::Interface::SEARCH_READING_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SEARCH_CONJ_FONT,
-                Keys::Interface::SEARCH_CONJ_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SEARCH_TAG_FONT,
-                Keys::Interface::SEARCH_TAG_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SEARCH_GLOSSARY_FONT,
-                Keys::Interface::SEARCH_GLOSSARY_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SEARCH_KANJI_FONT,
-                Keys::Interface::SEARCH_KANJI_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SubtitleList::PRIMARY_FONT,
-                Keys::Interface::SubtitleList::PRIMARY_FONT_DEFAULT
-            );
-            migrateFontSetting4To5(
-                settings,
-                Keys::Interface::SubtitleList::SECONDARY_FONT,
-                Keys::Interface::SubtitleList::SECONDARY_FONT_DEFAULT
-            );
-            settings.endGroup();
-        }
-    }
-
-    settings.setValue(Keys::Version::VERSION, Keys::Version::CURRENT);
 }

@@ -50,7 +50,7 @@
  */
 static QByteArray toWindowsShortPath(const QString &path)
 {
-    QByteArray pathArr = path.toUtf8();
+    QByteArray pathArr = QDir::toNativeSeparators(path).toUtf8();
     DWORD length = 0;
 
     length = GetShortPathNameA(pathArr.constData(), NULL, 0);
@@ -75,12 +75,14 @@ static QByteArray toWindowsShortPath(const QString &path)
  */
 static QByteArray genMecabArg()
 {
-    QByteArray arg = "-r ";
-    arg += toWindowsShortPath(
-        DirectoryUtils::getMecabDictionary() + "ipadic" + QDir::separator() + "dicrc"
-    );
+    QString ipadicPath = DirectoryUtils::getMecabDictionary() + "ipadic";
+    QString dicrcPath = ipadicPath + "/dicrc";
+
+    QByteArray arg;
     arg += " -d ";
-    arg += toWindowsShortPath(DirectoryUtils::getMecabDictionary() + "ipadic");
+    arg += toWindowsShortPath(ipadicPath);
+    arg += " -r ";
+    arg += toWindowsShortPath(dicrcPath);
     return arg;
 }
 #endif
@@ -94,7 +96,7 @@ MeCabQueryGenerator::MeCabQueryGenerator()
     QByteArray mecabArg = genMecabArg();
 #elif defined(MEMENTO_BUNDLE)
     QByteArray mecabArg = ( \
-        "-r " + DirectoryUtils::getMecabDictionary() + "ipadic" + QDir::separator() + "dicrc " \
+        "-r " + DirectoryUtils::getMecabDictionary() + "ipadic/dicrc " \
         "-d " + DirectoryUtils::getMecabDictionary() + "ipadic" \
     ).toUtf8();
 #else

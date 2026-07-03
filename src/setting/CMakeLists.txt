@@ -8,6 +8,8 @@ add_library(
     keybindprofilemodel.cpp
     keybindprofilemodel.h
     keys.h
+    migration.cpp
+    migration.h
     settings.cpp
     settings.h
 )

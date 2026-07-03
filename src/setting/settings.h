@@ -2416,11 +2416,6 @@ private:
      */
     void writeVersion();
 
-    /**
-     * @brief Update settings to the latest version.
-     */
-    static void updateSettings();
-
     /* The current version of the settings file */
     unsigned int m_version{0};
 

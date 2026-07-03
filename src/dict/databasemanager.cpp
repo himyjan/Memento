@@ -100,9 +100,9 @@ void DatabaseManager::loadDictionaryAssets(DictionaryInfo *info) const
     constexpr const char *STYLE_FILENAME = "styles.css";
 
     QString stylePath = m_resourcePath;
-    stylePath += QDir::separator();
+    stylePath += '/';
     stylePath += info->name();
-    stylePath += QDir::separator();
+    stylePath += '/';
     stylePath += STYLE_FILENAME;
 
     if (!QFile::exists(stylePath))

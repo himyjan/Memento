@@ -1153,8 +1153,7 @@ static GlossaryData getGlossary(const QList<TermDefinition *> &definitions)
     GlossaryData data;
     QSet<int64_t> dictionariesWithStyles;
 
-    QString basepath =
-        DirectoryUtils::getDictionaryResourceDir() + QDir::separator();
+    QString basepath = DirectoryUtils::getDictionaryResourceDir();
 
     data.glossary += GLOSSARY_OPEN;
     data.glossaryBrief += GLOSSARY_OPEN;

@@ -61,6 +61,7 @@
 #include "quick/features.h"
 #include "quick/keytracker.h"
 #include "quick/paths.h"
+#include "setting/migration.h"
 #include "setting/settings.h"
 #include "state/context.h"
 #include "subtitle/subtitlelistmodel.h"
@@ -92,16 +93,19 @@ static inline bool showHelpMessage(int argc, char **argv)
 }
 
 /**
- * @brief Create the Memento config directory if it doesn't already exist.
+ * @brief Create the Memento directory structure.
  *
- * @return true if the directory was created or already existed,
- * @return false otherwise.
+ * @return true if the paths exists or was created,
+ * @return false if a path could not be created.
  */
 [[nodiscard]]
-static bool makeConfigDirectory()
+static bool makeDirectoryStructure()
 {
     QDir dir;
-    return dir.mkpath(DirectoryUtils::getConfigDir());
+    return dir.mkpath(DirectoryUtils::getConfigDir()) &&
+        dir.mkpath(DirectoryUtils::getDataDir()) &&
+        dir.mkpath(DirectoryUtils::getCacheDir()) &&
+        dir.mkpath(DirectoryUtils::getDictionaryResourceDir());
 }
 
 /**
@@ -483,9 +487,9 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 #endif // MEMENTO_QAPPLICATION
 
-    if (!makeConfigDirectory())
+    if (!makeDirectoryStructure())
     {
-        qFatal("Could not make config directory");
+        qFatal("Could not make directory structure");
     }
 
     std::setlocale(LC_NUMERIC, "C");
@@ -508,6 +512,8 @@ int main(int argc, char *argv[])
         QQuickStyle::setFallbackStyle(QStringLiteral("Fusion"));
     }
 #endif // defined(Q_OS_MACOS) || defined(Q_OS_WIN)
+
+    Migration::updateSettings();
 
     Dictionary::createDatabaseInstance();
 

@@ -24,32 +24,78 @@
 #include <QStandardPaths>
 #include <QCoreApplication>
 
+namespace
+{
+
+/**
+ * @brief Get a normalized writeable location. This removes the redundant
+ * "memento" from the end of paths.
+ *
+ * @param location The location to get.
+ * @return Path to the writable location.
+ */
+[[nodiscard]]
+QString normalizedWritableLocation(QStandardPaths::StandardLocation location)
+{
+    constexpr size_t PATH_CHOP_LENGTH = sizeof("memento") - 1;
+
+    QString path = QStandardPaths::writableLocation(location);
+
+    if (path.endsWith("memento/memento"))
+    {
+        path.chop(PATH_CHOP_LENGTH);
+    }
+
+    if (path.endsWith("memento"))
+    {
+        path += '/';
+    }
+    else if (!path.endsWith("memento/"))
+    {
+        path += "/memento/";
+        path = QDir::cleanPath(path) + '/';
+    }
+    return path;
+}
+
+} // namespace
+
 QString DirectoryUtils::getProgramDirectory()
 {
-    return QDir::toNativeSeparators(
-        QCoreApplication::applicationDirPath()
-    ) + QDir::separator();
+    return QCoreApplication::applicationDirPath() + '/';
 }
 
 QString DirectoryUtils::getConfigDir()
 {
-    QString path = QDir::toNativeSeparators(
-        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)
-    );
-    path.chop(sizeof("memento") - 1);
-    if (path.isEmpty() || !path.endsWith(QDir::separator()))
-    {
-        path += QDir::separator();
-    }
-    return path;
+    return normalizedWritableLocation(QStandardPaths::AppConfigLocation);
+}
+
+QString DirectoryUtils::getDataDir()
+{
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+    return normalizedWritableLocation(QStandardPaths::AppDataLocation);
+#else
+    return getConfigDir();
+#endif
+}
+
+QString DirectoryUtils::getCacheDir()
+{
+    return normalizedWritableLocation(QStandardPaths::CacheLocation);
+}
+
+QString DirectoryUtils::getDictionaryResourceDir()
+{
+    constexpr const char *RESOURCE_DIR = "res";
+    return getDataDir() + RESOURCE_DIR + '/';
 }
 
 QString DirectoryUtils::getMecabDictionary()
 {
 #if defined(Q_OS_WIN)
-    return getProgramDirectory() + "dic" + QDir::separator();
+    return getProgramDirectory() + "dic/";
 #elif defined(MEMENTO_BUNDLE)
-    return getProgramDirectory() + "/../Resources/mecab/dic/";
+    return getProgramDirectory() + "../Resources/mecab/dic/";
 #else
     return "";
 #endif
@@ -58,7 +104,7 @@ QString DirectoryUtils::getMecabDictionary()
 QString DirectoryUtils::getDictionaryDb()
 {
     constexpr const char *DICT_DB_FILE = "dictionaries.sqlite";
-    return getConfigDir() + DICT_DB_FILE;
+    return getDataDir() + DICT_DB_FILE;
 }
 
 QString DirectoryUtils::getAnkiConfig()
@@ -73,8 +119,10 @@ QString DirectoryUtils::getMpvInputConfig()
     return getConfigDir() + MPV_INPUT_CONF_FILE;
 }
 
-QString DirectoryUtils::getDictionaryResourceDir()
+#if defined(Q_OS_UNIX) && !defined(Q_OS_MACOS)
+QString DirectoryUtils::getCacheConfig()
 {
-    constexpr const char *RESOURCE_DIR = "res";
-    return getConfigDir() + RESOURCE_DIR + QDir::separator();
+    constexpr const char *CACHE_CONFIG_FILE = "memento.conf";
+    return getCacheDir() + CACHE_CONFIG_FILE;
 }
+#endif
