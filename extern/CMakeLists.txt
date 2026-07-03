@@ -18,7 +18,7 @@ if(NOT MEMENTO_SYSTEM_QCORO)
     FetchContent_Declare(
         qcoro
         GIT_REPOSITORY https://github.com/qcoro/qcoro.git
-        GIT_TAG ef1231ae490465b4f592ca326eee6d56a3d802ae # v0.12.0
+        GIT_TAG 98f23d8d8d67e9e24217d268927faec97c713fb0 # v0.13.0
         PATCH_COMMAND ${MEMENTO_QCORO_PATCH_COMMAND}
     )
     FetchContent_MakeAvailable(qcoro)
