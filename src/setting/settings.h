@@ -315,10 +315,10 @@ class Settings : public QObject
     )
 
     Q_PROPERTY(
-        bool showAnkiGlossaryCheckbox
-        READ showAnkiGlossaryCheckbox
-        WRITE setShowAnkiGlossaryCheckbox
-        NOTIFY showAnkiGlossaryCheckboxChanged
+        bool searchShowAnkiGlossaryCheckbox
+        READ searchShowAnkiGlossaryCheckbox
+        WRITE setSearchShowAnkiGlossaryCheckbox
+        NOTIFY searchShowAnkiGlossaryCheckboxChanged
     )
 
     /* Interface Settings */
@@ -1388,14 +1388,14 @@ public:
      * @return true to show the Anki checkbox, false to hide it.
      */
     [[nodiscard]]
-    bool showAnkiGlossaryCheckbox() const noexcept;
+    bool searchShowAnkiGlossaryCheckbox() const noexcept;
 
     /**
      * @brief Set if the Anki checkbox should be shown in term glossaries.
      *
      * @param value true to show the Anki checkbox, false to hide it.
      */
-    void setShowAnkiGlossaryCheckbox(
+    void setSearchShowAnkiGlossaryCheckbox(
         bool value = Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT);
 
     /* Interface Settings */
@@ -2182,7 +2182,7 @@ signals:
      *
      * @param value The new value.
      */
-    void showAnkiGlossaryCheckboxChanged(bool value);
+    void searchShowAnkiGlossaryCheckboxChanged(bool value);
 
     /* Interface Settings */
 

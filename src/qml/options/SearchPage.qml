@@ -292,8 +292,8 @@ Page {
                         }
                         Switch {
                             Layout.alignment: Qt.AlignRight
-                            checked: MementoSettings.showAnkiGlossaryCheckbox
-                            onClicked: MementoSettings.showAnkiGlossaryCheckbox = checked
+                            checked: MementoSettings.searchShowAnkiGlossaryCheckbox
+                            onClicked: MementoSettings.searchShowAnkiGlossaryCheckbox = checked
                         }
                     }
                 }

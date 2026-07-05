@@ -725,7 +725,7 @@ void Settings::loadSearchSettings()
             Keys::Search::REMOVE_REGEX_DEFAULT
         ).toString()
     );
-    setShowAnkiGlossaryCheckbox(
+    setSearchShowAnkiGlossaryCheckbox(
         s.value(
             Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX,
             Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT
@@ -802,7 +802,7 @@ void Settings::writeSearchSettings()
     );
     s.setValue(
         Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX,
-        showAnkiGlossaryCheckbox()
+        searchShowAnkiGlossaryCheckbox()
     );
 
     s.endGroup();
@@ -825,7 +825,7 @@ void Settings::defaultSearchSettings()
     setSearchReplaceNewlines();
     setSearchReplaceNewlinesWith();
     setSearchRemoveRegex();
-    setShowAnkiGlossaryCheckbox();
+    setSearchShowAnkiGlossaryCheckbox();
 }
 
 void Settings::loadInterfaceSettings()
@@ -2116,19 +2116,21 @@ void Settings::setSearchRemoveRegex(const QString &value)
     emit searchRemoveRegexChanged(m_search.removeRegex);
 }
 
-bool Settings::showAnkiGlossaryCheckbox() const noexcept
+bool Settings::searchShowAnkiGlossaryCheckbox() const noexcept
 {
     return m_search.showAnkiGlossaryCheckbox;
 }
 
-void Settings::setShowAnkiGlossaryCheckbox(bool value)
+void Settings::setSearchShowAnkiGlossaryCheckbox(bool value)
 {
     if (m_search.showAnkiGlossaryCheckbox == value)
     {
         return;
     }
     m_search.showAnkiGlossaryCheckbox = value;
-    emit showAnkiGlossaryCheckboxChanged(m_search.showAnkiGlossaryCheckbox);
+    emit searchShowAnkiGlossaryCheckboxChanged(
+        m_search.showAnkiGlossaryCheckbox
+    );
 }
 
 /* Interface Settings */
