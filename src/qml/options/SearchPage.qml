@@ -359,6 +359,26 @@ Page {
 
                     SettingsBoxSeparator {
                         Layout.fillWidth: true
+                        visible: Features.mecab
+                    }
+
+                    RowLayout {
+                        visible: Features.mecab
+
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Show furigana over subtitles (inaccurate)")
+                        }
+                        Switch {
+                            Layout.alignment: Qt.AlignRight
+                            checked: MementoSettings.searchSubtitleFurigana
+                            onClicked: MementoSettings.searchSubtitleFurigana = checked
+                        }
+                    }
+
+                    SettingsBoxSeparator {
+                        Layout.fillWidth: true
                     }
 
                     RowLayout {

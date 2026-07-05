@@ -557,6 +557,7 @@ MpvPlayer {
         stroke: MementoSettings.interfaceSubtitleStrokeColor
         strokeSize: MementoSettings.interfaceSubtitleStroke
         lineSpacing: MementoSettings.interfaceSubtitleLineSpacing
+        furiganaRatio: MementoSettings.interfaceSubtitleFuriganaRatio
 
         text: {
             /* Implements regex filtering */

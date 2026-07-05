@@ -20,10 +20,26 @@
 
 #pragma once
 
-#include "util/directoryutils.h"
-#include "util/fileutils.h"
-#include "util/imageutils.h"
-
 #ifdef MEMENTO_MECAB_SUPPORT
-#include "util/mecabutils.h"
+
+#include <memory>
+
+namespace MeCab
+{
+class Tagger;
+} // namespace MeCab
+
+namespace MeCabUtils
+{
+
+/**
+ * @brief Make a MeCab::Tagger with the default Memento arguments.
+ *
+ * @return A pointer to the created tagger, nullptr on failure.
+ */
+[[nodiscard]]
+std::unique_ptr<MeCab::Tagger> makeTagger();
+
+} // namespace MeCabUtils
+
 #endif // MEMENTO_MECAB_SUPPORT

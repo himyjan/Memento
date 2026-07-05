@@ -59,6 +59,7 @@
 #include "quick/clipboard.h"
 #include "quick/coloredsvgprovider.h"
 #include "quick/features.h"
+#include "quick/furiganaparser.h"
 #include "quick/keytracker.h"
 #include "quick/paths.h"
 #include "setting/migration.h"
@@ -248,6 +249,10 @@ static void registerQmlTypes(Context &context)
     );
     qmlRegisterSingletonInstance<FileOpenHandler>(
         MEMENTO_URI, 1, 0, "FileOpenHandler", context.fileOpenHandler()
+    );
+    qmlRegisterSingletonInstance<FuriganaParser>(
+        MEMENTO_URI, 1, 0, "FuriganaParser",
+        new FuriganaParser(context.settings(), &context)
     );
     qmlRegisterSingletonInstance<KeyTracker>(
         MEMENTO_URI, 1, 0, "KeyTracker", context.keyTracker()

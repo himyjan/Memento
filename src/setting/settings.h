@@ -315,6 +315,13 @@ class Settings : public QObject
     )
 
     Q_PROPERTY(
+        bool searchSubtitleFurigana
+        READ searchSubtitleFurigana
+        WRITE setSearchSubtitleFurigana
+        NOTIFY searchSubtitleFuriganaChanged
+    )
+
+    Q_PROPERTY(
         bool searchShowAnkiGlossaryCheckbox
         READ searchShowAnkiGlossaryCheckbox
         WRITE setSearchShowAnkiGlossaryCheckbox
@@ -384,6 +391,13 @@ class Settings : public QObject
         READ interfaceSubtitleStrokeColor
         WRITE setInterfaceSubtitleStrokeColor
         NOTIFY interfaceSubtitleStrokeColorChanged
+    )
+
+    Q_PROPERTY(
+        double interfaceSubtitleFuriganaRatio
+        READ interfaceSubtitleFuriganaRatio
+        WRITE setInterfaceSubtitleFuriganaRatio
+        NOTIFY interfaceSubtitleFuriganaRatioChanged
     )
 
     Q_PROPERTY(
@@ -1383,6 +1397,23 @@ public:
         const QString &value = Keys::Search::REMOVE_REGEX_DEFAULT);
 
     /**
+     * @brief Get if the subtitle should display furigana.
+     *
+     * @return true to display furigana,
+     * @return false to not display furigana.
+     */
+    [[nodiscard]]
+    bool searchSubtitleFurigana() const noexcept;
+
+    /**
+     * @brief Set if the subtitle should display furigana.
+     *
+     * @param value true to display furigana, false to not.
+     */
+    void setSearchSubtitleFurigana(
+        bool value = Keys::Search::SUBTITLE_FURIGANA_DEFAULT);
+
+    /**
      * @brief Get if the Anki checkbox should be shown in term glossaries.
      *
      * @return true to show the Anki checkbox, false to hide it.
@@ -1547,6 +1578,22 @@ public:
      */
     void setInterfaceSubtitleStrokeColor(
         const QColor &value = Keys::Interface::Subtitle::STROKE_COLOR_DEFAULT);
+
+    /**
+     * @brief Get the target ratio of subtitle size to furigana size.
+     *
+     * @return Target ratio of subtitle size to furigana size.
+     */
+    [[nodiscard]]
+    double interfaceSubtitleFuriganaRatio() const noexcept;
+
+    /**
+     * @brief Set the target ratio of subtitle size to furigana size.
+     *
+     * @param value The target ratio.
+     */
+    void setInterfaceSubtitleFuriganaRatio(
+        double value = Keys::Interface::Subtitle::FURIGANA_RATIO_DEFAULT);
 
     /**
      * @brief Gets the search popup width.
@@ -2178,6 +2225,13 @@ signals:
     void searchRemoveRegexChanged(const QString &value);
 
     /**
+     * @brief Emitted when the search subtitle furigana settings is changed.
+     *
+     * @param value The new value.
+     */
+    void searchSubtitleFuriganaChanged(bool value);
+
+    /**
      * @brief Emitted when the show Anki glossary checkbox setting is changed.
      *
      * @param value The new value.
@@ -2249,6 +2303,14 @@ signals:
      * @param value The new value.
      */
     void interfaceSubtitleStrokeColorChanged(const QColor &value);
+
+    /**
+     * @brief Emitted when the interface subtitle furigana ratio setting is
+     * changed.
+     *
+     * @param value The new value.
+     */
+    void interfaceSubtitleFuriganaRatioChanged(double value);
 
     /**
      * @brief Emitted when the interface popup width setting is changed.
@@ -2602,6 +2664,9 @@ private:
         /* The regular expression filter subtitle text through */
         QString removeRegex{Keys::Search::REMOVE_REGEX_DEFAULT};
 
+        /* true to display furigana in subtitles, false otherwise */
+        bool subtitleFurigana{Keys::Search::SUBTITLE_FURIGANA_DEFAULT};
+
         /* true to show Anki glossary checkboxes, false to hide */
         bool showAnkiGlossaryCheckbox{
             Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT
@@ -2647,6 +2712,11 @@ private:
         /* Color of the text stroke */
         QColor subtitleStrokeColor{
             Keys::Interface::Subtitle::STROKE_COLOR_DEFAULT
+        };
+
+        /* Target ratio of furigana size relative to subtitle size */
+        double subtitleFuriganaRatio{
+            Keys::Interface::Subtitle::FURIGANA_RATIO_DEFAULT
         };
 
         /* The width of the search popup */

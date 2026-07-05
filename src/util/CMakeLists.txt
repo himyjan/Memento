@@ -6,6 +6,8 @@ add_library(
     fileutils.h
     imageutils.cpp
     imageutils.h
+    mecabutils.cpp
+    mecabutils.h
     utils.h
 )
 target_compile_features(utils PUBLIC cxx_std_20)
@@ -17,3 +19,9 @@ target_link_libraries(
     PUBLIC Qt6::Gui
     PUBLIC Qt6::Qml
 )
+if(MEMENTO_MECAB_SUPPORT)
+    target_link_libraries(
+        utils
+        PRIVATE MeCab::MeCab
+    )
+endif()

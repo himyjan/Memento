@@ -12,6 +12,7 @@ Item {
     property real strokeSize: 1.0
     property int lineSpacing: 0
     property int cursorShape: Qt.IBeamCursor
+    property real furiganaRatio: 0.4
 
     property int hoverIndex: -1
     property int selectionStart: -1
@@ -124,13 +125,143 @@ Item {
                 }
 
                 anchors.horizontalCenter: parent.horizontalCenter
-                height: strokeShape.implicitHeight
+                height: {
+                    let height = strokeShape.implicitHeight;
+                    if (furiganaRepeater.count > 0)
+                    {
+                        height += strokeShape.implicitHeight * root.furiganaRatio;
+                    }
+                    return height;
+                }
                 width: strokeShape.implicitWidth
                 color: root.background
 
+                Repeater {
+                    id: furiganaRepeater
+
+                    model: {
+                        if (!MementoSettings.searchSubtitleFurigana)
+                        {
+                            return [];
+                        }
+
+                        const pairs = FuriganaParser.parse(delegateRect.text);
+                        let offset = 0;
+                        let model = [];
+                        for (const pair of pairs)
+                        {
+                            if (pair.reading)
+                            {
+                                model.push({
+                                    "text": pair.reading,
+                                    "offset": offset,
+                                    "length": pair.surface.length
+                                });
+                            }
+                            offset += pair.surface.length;
+                        }
+                        return model;
+                    }
+
+                    delegate: Item {
+                        id: delegateFurigana
+
+                        required property string text
+                        required property int offset
+                        required property int length
+
+                        anchors.bottom: strokeShape.top
+
+                        x: {
+                            /* These bind this property to things it doesn't directly depend on */
+                            textEdit.implicitWidth;
+                            root.font.pixelSize;
+                            return textEdit.x + textEdit.positionToRectangle(delegateFurigana.offset).x;
+                        }
+
+                        height: strokeShape.implicitHeight * root.furiganaRatio
+                        width: {
+                            let start = textEdit.positionToRectangle(delegateFurigana.offset).x;
+                            let end = textEdit.implicitWidth;
+                            if (delegateFurigana.offset + delegateFurigana.length < delegateRect.text.length)
+                            {
+                                end = textEdit.positionToRectangle(
+                                            delegateFurigana.offset + delegateFurigana.length).x;
+                            }
+                            return end - start;
+                        }
+
+                        Item {
+                            id: furiganaContainerItem
+
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+
+                            height: furiganaStrokeShape.implicitHeight
+                            width: furiganaStrokeShape.implicitWidth
+
+                            transformOrigin: Item.Bottom
+                            scale: {
+                                const widthRatio = delegateFurigana.width / furiganaStrokeShape.implicitWidth;
+                                const heightRatio = delegateFurigana.height / furiganaStrokeShape.implicitHeight;
+                                return Math.min(widthRatio, heightRatio, root.furiganaRatio);
+                            }
+
+                            Shape {
+                                id: furiganaStrokeShape
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                anchors.bottom: parent.bottom
+                                antialiasing: true
+                                layer.enabled: true
+                                layer.samples: 8
+                                layer.smooth: true
+
+                                ShapePath {
+                                    strokeWidth: root.strokeSize
+                                    strokeColor: root.stroke
+                                    fillColor: "transparent"
+                                    fillRule: ShapePath.WindingFill
+                                    joinStyle: ShapePath.RoundJoin
+                                    capStyle: ShapePath.RoundCap
+
+                                    PathText {
+                                        x: root.margin
+                                        y: root.margin
+                                        font: root.font
+                                        text: delegateFurigana.text
+                                    }
+                                }
+                            }
+
+                            Shape {
+                                id: textFuriganaShape
+                                anchors.centerIn: furiganaStrokeShape
+                                antialiasing: true
+                                layer.enabled: true
+                                layer.samples: 8
+                                layer.smooth: true
+
+                                ShapePath {
+                                    strokeWidth: 0
+                                    fillColor: root.color
+                                    fillRule: ShapePath.WindingFill
+                                    joinStyle: ShapePath.RoundJoin
+                                    capStyle: ShapePath.RoundCap
+
+                                    PathText {
+                                        font: root.font
+                                        text: delegateFurigana.text
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Shape {
                     id: strokeShape
-                    anchors.centerIn: parent
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    anchors.bottom: parent.bottom
                     antialiasing: true
                     layer.enabled: true
                     layer.samples: 8
@@ -241,12 +372,12 @@ Item {
                 }
 
                 MouseArea {
-                    anchors.fill: parent
+                    anchors.fill: textShape
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
                     cursorShape: root.cursorShape
                     onPositionChanged: function(mouse) {
-                        let x = mouse.x - root.margin;
+                        let x = mouse.x;
                         if (x >= 0 && x < textEdit.width)
                         {
                             let index = textEdit.getCharacterIndexAt(x);

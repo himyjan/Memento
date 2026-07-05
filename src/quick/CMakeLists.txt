@@ -56,6 +56,27 @@ target_link_libraries(
 )
 
 add_library(
+    furiganaparser
+    furiganaparser.cpp
+    furiganaparser.h
+)
+target_compile_features(furiganaparser PRIVATE cxx_std_20)
+target_include_directories(furiganaparser PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(furiganaparser PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_link_libraries(
+    furiganaparser
+    PRIVATE utils
+    PUBLIC Qt6::Core
+    PUBLIC settings
+)
+if(MEMENTO_MECAB_SUPPORT)
+    target_link_libraries(
+        furiganaparser
+        PUBLIC MeCab::MeCab
+    )
+endif()
+
+add_library(
     keytracker
     keytracker.cpp
     keytracker.h

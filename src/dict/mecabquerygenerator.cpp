@@ -26,83 +26,11 @@
 
 #include "util/utils.h"
 
-/* Begin Static Helpers */
-
-#if defined(Q_OS_WIN)
-/**
- * This whole section is necessary on Windows because MeCab has a bug that
- * prevents it from loading dictionaries if there are spaces in the path on
- * Windows. If Memento is to be install in "Program Files", this quickly
- * becomes an issue. This workaround turns all long paths into space-less
- * short paths.
- */
-#ifndef NOMINMAX
-#define NOMINMAX 1
-#endif // NOMINMAX
-#include <Windows.h>
-
-#include <fileapi.h>
-
-/**
- * Takes a Windows long path and returns an 8.3/short path.
- * @param path The Window long path to convert.
- * @return A Windows short path, or the empty string on error.
- */
-static QByteArray toWindowsShortPath(const QString &path)
-{
-    QByteArray pathArr = QDir::toNativeSeparators(path).toUtf8();
-    DWORD length = 0;
-
-    length = GetShortPathNameA(pathArr.constData(), NULL, 0);
-    if (length == 0)
-    {
-        return "";
-    }
-
-    QByteArray buf(length, '\0');
-    length = GetShortPathNameA(pathArr, buf.data(), length);
-    if (length == 0)
-    {
-        return "";
-    }
-    buf.chop(1);
-    return buf;
-}
-
-/**
- * Generates the MeCab argument on Windows.
- * @return An argument to pass MeCab so it uses the install's ipadic.
- */
-static QByteArray genMecabArg()
-{
-    QString ipadicPath = DirectoryUtils::getMecabDictionary() + "ipadic";
-    QString dicrcPath = ipadicPath + "/dicrc";
-
-    QByteArray arg;
-    arg += " -d ";
-    arg += toWindowsShortPath(ipadicPath);
-    arg += " -r ";
-    arg += toWindowsShortPath(dicrcPath);
-    return arg;
-}
-#endif
-
-/* End Static Helpers */
 /* Begin Constructor */
 
 MeCabQueryGenerator::MeCabQueryGenerator()
 {
-#if defined(Q_OS_WIN)
-    QByteArray mecabArg = genMecabArg();
-#elif defined(MEMENTO_BUNDLE)
-    QByteArray mecabArg = ( \
-        "-r " + DirectoryUtils::getMecabDictionary() + "ipadic/dicrc " \
-        "-d " + DirectoryUtils::getMecabDictionary() + "ipadic" \
-    ).toUtf8();
-#else
-    QByteArray mecabArg = "";
-#endif
-    m_tagger.reset(MeCab::createTagger(mecabArg));
+    m_tagger = MeCabUtils::makeTagger();
     if (m_tagger == nullptr)
     {
         qWarning("Could not create MeCab::Tagger: %s", MeCab::getTaggerError());

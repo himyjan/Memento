@@ -331,6 +331,31 @@ Page {
 
                     SettingsBoxSeparator {
                         Layout.fillWidth: true
+                        visible: Features.mecab
+                    }
+
+                    RowLayout {
+                        visible: Features.mecab
+                        Label {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignLeft
+                            text: qsTr("Target furigana to subtitle size ratio")
+                        }
+                        TextField {
+                            Layout.alignment: Qt.AlignRight
+                            Layout.preferredWidth: 100
+                            validator: DoubleValidator {
+                                bottom: 0.0
+                                top: 1.0
+                            }
+                            placeholderText: qsTr("Ratio")
+                            text: MementoSettings.interfaceSubtitleFuriganaRatio
+                            onEditingFinished: MementoSettings.interfaceSubtitleFuriganaRatio = text
+                        }
+                    }
+
+                    SettingsBoxSeparator {
+                        Layout.fillWidth: true
                     }
 
                     StrokeLabel {

@@ -250,6 +250,9 @@ namespace Keys
         constexpr const char *REMOVE_REGEX = "remove-regex";
         constexpr const char *REMOVE_REGEX_DEFAULT = "";
 
+        constexpr const char *SUBTITLE_FURIGANA = "subtitle-furigana";
+        constexpr bool SUBTITLE_FURIGANA_DEFAULT = false;
+
         constexpr const char *SHOW_ANKI_GLOSSARY_CHECKBOX = "show-anki-glossary-checkbox";
         constexpr bool SHOW_ANKI_GLOSSARY_CHECKBOX_DEFAULT = true;
     }
@@ -286,6 +289,9 @@ namespace Keys
 
             constexpr const char *STROKE_COLOR = "sub-stroke-color";
             constexpr const char *STROKE_COLOR_DEFAULT = "#FF000000";
+
+            constexpr const char *FURIGANA_RATIO = "sub-furigana-ratio";
+            constexpr double FURIGANA_RATIO_DEFAULT = 0.4;
         }
 
         constexpr const char *POPUP_WIDTH = "sub-popup-width";

@@ -144,6 +144,7 @@ target_link_libraries(
     PRIVATE definition
     PRIVATE dictionary
     PRIVATE features
+    PRIVATE furiganaparser
     PRIVATE keytracker
     PRIVATE managers
     PRIVATE mpvplayer

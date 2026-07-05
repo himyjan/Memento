@@ -725,6 +725,12 @@ void Settings::loadSearchSettings()
             Keys::Search::REMOVE_REGEX_DEFAULT
         ).toString()
     );
+    setSearchSubtitleFurigana(
+        s.value(
+            Keys::Search::SUBTITLE_FURIGANA,
+            Keys::Search::SUBTITLE_FURIGANA_DEFAULT
+        ).toBool()
+    );
     setSearchShowAnkiGlossaryCheckbox(
         s.value(
             Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX,
@@ -801,6 +807,10 @@ void Settings::writeSearchSettings()
         searchRemoveRegex()
     );
     s.setValue(
+        Keys::Search::SUBTITLE_FURIGANA,
+        searchSubtitleFurigana()
+    );
+    s.setValue(
         Keys::Search::SHOW_ANKI_GLOSSARY_CHECKBOX,
         searchShowAnkiGlossaryCheckbox()
     );
@@ -825,6 +835,7 @@ void Settings::defaultSearchSettings()
     setSearchReplaceNewlines();
     setSearchReplaceNewlinesWith();
     setSearchRemoveRegex();
+    setSearchSubtitleFurigana();
     setSearchShowAnkiGlossaryCheckbox();
 }
 
@@ -887,6 +898,12 @@ void Settings::loadInterfaceSettings()
             Keys::Interface::Subtitle::STROKE_COLOR,
             Keys::Interface::Subtitle::STROKE_COLOR_DEFAULT
         ).toString()
+    );
+    setInterfaceSubtitleFuriganaRatio(
+        s.value(
+            Keys::Interface::Subtitle::FURIGANA_RATIO,
+            Keys::Interface::Subtitle::FURIGANA_RATIO_DEFAULT
+        ).toDouble()
     );
     setInterfaceSearchWindow(
         s.value(
@@ -1056,6 +1073,10 @@ void Settings::writeInterfaceSettings()
         interfaceSubtitleStrokeColor().name(QColor::HexArgb)
     );
     s.setValue(
+        Keys::Interface::Subtitle::FURIGANA_RATIO,
+        interfaceSubtitleFuriganaRatio()
+    );
+    s.setValue(
         Keys::Interface::POPUP_WIDTH,
         interfacePopupWidth()
     );
@@ -1142,6 +1163,7 @@ void Settings::defaultInterfaceSettings()
     setInterfaceSubtitleColor();
     setInterfaceSubtitleBackground();
     setInterfaceSubtitleStrokeColor();
+    setInterfaceSubtitleFuriganaRatio();
     setInterfacePopupWidth();
     setInterfacePopupHeight();
     setInterfaceSearchWindow();
@@ -2116,6 +2138,21 @@ void Settings::setSearchRemoveRegex(const QString &value)
     emit searchRemoveRegexChanged(m_search.removeRegex);
 }
 
+bool Settings::searchSubtitleFurigana() const noexcept
+{
+    return m_search.subtitleFurigana;
+}
+
+void Settings::setSearchSubtitleFurigana(bool value)
+{
+    if (m_search.subtitleFurigana == value)
+    {
+        return;
+    }
+    m_search.subtitleFurigana = value;
+    emit searchSubtitleFuriganaChanged(m_search.subtitleFurigana);
+}
+
 bool Settings::searchShowAnkiGlossaryCheckbox() const noexcept
 {
     return m_search.showAnkiGlossaryCheckbox;
@@ -2268,6 +2305,23 @@ void Settings::setInterfaceSubtitleStrokeColor(const QColor &value)
     }
     m_interface.subtitleStrokeColor = value;
     emit interfaceSubtitleStrokeColorChanged(m_interface.subtitleStrokeColor);
+}
+
+double Settings::interfaceSubtitleFuriganaRatio() const noexcept
+{
+    return m_interface.subtitleFuriganaRatio;
+}
+
+void Settings::setInterfaceSubtitleFuriganaRatio(double value)
+{
+    if (m_interface.subtitleFuriganaRatio == value)
+    {
+        return;
+    }
+    m_interface.subtitleFuriganaRatio = value;
+    emit interfaceSubtitleFuriganaRatioChanged(
+        m_interface.subtitleFuriganaRatio
+    );
 }
 
 int Settings::interfacePopupWidth() const noexcept
