@@ -917,9 +917,22 @@ static QString getFurigana(const Term &term)
     {
         return getExpression(term);
     }
-    return QString("<ruby>%1<rt>%2</rt></ruby>")
-        .arg(getExpression(term))
-        .arg(getReading(term));
+
+    QString result;
+    for (const FuriganaUtils::Pair &pair : term.furigana())
+    {
+        if (pair.reading.isEmpty())
+        {
+            result += pair.surface;
+        }
+        else
+        {
+            result += QString("<ruby>%1<rt>%2</rt></ruby>")
+                .arg(pair.surface)
+                .arg(pair.reading);
+        }
+    }
+    return result;
 }
 
 /**
@@ -935,9 +948,22 @@ static QString getFuriganaPlain(const Term &term)
     {
         return getExpression(term);
     }
-    return QString("%1[%2]")
-        .arg(getExpression(term))
-        .arg(getReading(term));
+
+    QString result;
+    for (const FuriganaUtils::Pair &pair : term.furigana())
+    {
+        if (pair.reading.isEmpty())
+        {
+            result += pair.surface;
+        }
+        else
+        {
+            result += QString("%1[%2]")
+                .arg(pair.surface)
+                .arg(pair.reading);
+        }
+    }
+    return result;
 }
 
 /**

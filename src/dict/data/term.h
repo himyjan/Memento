@@ -27,6 +27,7 @@
 #include "dict/data/pitch.h"
 #include "dict/data/tag.h"
 #include "dict/data/termdefinition.h"
+#include "util/utils.h"
 
 class DictionarySearch;
 
@@ -49,6 +50,12 @@ class Term : public Expression
         READ reading
         WRITE setReading
         NOTIFY readingChanged
+    )
+
+    Q_PROPERTY(
+        QVariantList furigana
+        READ furiganaQml
+        NOTIFY furiganaChanged
     )
 
     Q_PROPERTY(
@@ -191,6 +198,29 @@ public:
      * @param value The new reading.
      */
     void setReading(const QString &value);
+
+    /**
+     * @brief Get a list of surface and reading pairs for this expression.
+     *
+     * @return A list of surface and reading pairs.
+     */
+    [[nodiscard]]
+    QVariantList furiganaQml() const;
+
+    /**
+     * @brief Get a list of surface and reading pairs for this expression.
+     *
+     * @return A list of surface and reading pairs.
+     */
+    [[nodiscard]]
+    const QList<FuriganaUtils::Pair> &furigana() const noexcept;
+
+    /**
+     * @brief Set a list of surface and reading pairs for this expression.
+     *
+     * @param value The surface and reading pairs.
+     */
+    void setFurigana(const QList<FuriganaUtils::Pair> &value);
 
     /**
      * @brief Get the conjugation explanation of this term.
@@ -469,6 +499,11 @@ signals:
     void readingChanged(const QString &value);
 
     /**
+     * @brief Emitted when the furigana is changed.
+     */
+    void furiganaChanged();
+
+    /**
      * @brief Emitted when the conjugation explanation is changed.
      *
      * @param value The new value.
@@ -564,6 +599,9 @@ protected:
 
     /* The reading of a term. Usually empty if the term includes no kanji. */
     QString m_reading;
+
+    /* A list of variant maps containing surface and reading pairs */
+    QList<FuriganaUtils::Pair> m_furigana;
 
     /* The conjugation explanation of a term.
      * Usually empty if the term was not conjugated. */

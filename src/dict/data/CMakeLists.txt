@@ -29,4 +29,5 @@ target_link_libraries(
     dictionary_data
     PUBLIC Qt6::Core
     PUBLIC Qt6::Qml
+    PUBLIC utils
 )

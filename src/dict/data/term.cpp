@@ -58,6 +58,7 @@ Term *Term::clone(QObject *parent) const
 	/* Copy Term specific fields */
 	copy->setExpression(expression());
 	copy->setReading(reading());
+	copy->setFurigana(furigana());
 	copy->setConjugationExplanation(conjugationExplanation());
 	copy->setReadingAsExpression(readingAsExpression());
 	for (Tag *t : tags())
@@ -113,6 +114,37 @@ void Term::setReading(const QString &value)
 	}
 	m_reading = value;
 	emit readingChanged(m_reading);
+}
+
+QVariantList Term::furiganaQml() const
+{
+	constexpr const char *KEY_SURFACE = "surface";
+	constexpr const char *KEY_READING = "reading";
+
+	QVariantList result;
+	result.reserve(m_furigana.size());
+	for (const FuriganaUtils::Pair &pair : m_furigana)
+	{
+		QVariantMap element;
+		element[KEY_SURFACE] = pair.surface;
+		if (!pair.reading.isEmpty())
+		{
+			element[KEY_READING] = pair.reading;
+		}
+		result.emplaceBack(std::move(element));
+	}
+	return result;
+}
+
+const QList<FuriganaUtils::Pair> &Term::furigana() const noexcept
+{
+	return m_furigana;
+}
+
+void Term::setFurigana(const QList<FuriganaUtils::Pair> &value)
+{
+	m_furigana = value;
+	emit furiganaChanged();
 }
 
 const QString &Term::conjugationExplanation() const noexcept

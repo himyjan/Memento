@@ -30,6 +30,8 @@
 
 #include "dict/deconjugationquerygenerator.h"
 #include "dict/exactquerygenerator.h"
+#include "util/furiganautils.h"
+
 #ifdef MEMENTO_MECAB_SUPPORT
 #include "dict/mecabquerygenerator.h"
 #endif // MEMENTO_MECAB_SUPPORT
@@ -216,6 +218,9 @@ QList<Term *> DictionarySearchController::searchTermsSync(
             term->setClozeBody(clozeBody);
             term->setClozeSuffix(clozeSuffix);
             term->setConjugationExplanation(query.conjugationExplanation);
+            term->m_furigana = FuriganaUtils::simplifySurface(
+                term->expression(), term->reading()
+            );
         }
 
         terms.append(std::move(results));
