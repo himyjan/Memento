@@ -20,11 +20,37 @@
 
 #pragma once
 
-#include "util/directoryutils.h"
-#include "util/fileutils.h"
-#include "util/furiganautils.h"
-#include "util/imageutils.h"
+#include <QList>
+#include <QString>
 
-#ifdef MEMENTO_MECAB_SUPPORT
-#include "util/mecabutils.h"
-#endif // MEMENTO_MECAB_SUPPORT
+namespace FuriganaUtils
+{
+
+/**
+ * @brief Contains a surface-reading pair.
+ */
+struct Pair
+{
+    /* Text of the raw string */
+    QString surface;
+
+    /* Reading of the surface. Empty if the reading is the surface.*/
+    QString reading;
+};
+
+/**
+ * @brief Simply a surface-reading pair by matching all characters duplicated
+ * in the reading to the surface string.
+ *
+ * If a surface string has no solution or multiple solutions, a single pair of
+ * surface and reading is returned.
+ *
+ * @param surface The surface string.
+ * @param reading The reading of the surface.
+ * @return A list of surface-reading pairs.
+ */
+[[nodiscard]]
+QList<FuriganaUtils::Pair> simplifySurface(
+    const QString &surface, const QString &reading);
+
+} // namespace FuriganaUtils

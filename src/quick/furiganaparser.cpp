@@ -123,13 +123,27 @@ QVariantList FuriganaParser::parse(const QString &text)
         QString surfaceHiragana = katakanaToHiragana(surface);
         reading = katakanaToHiragana(reading);
 
-        QVariantMap element;
-        element[KEY_SURFACE] = std::move(surface);
-        if (reading != "*" && surfaceHiragana != reading)
+        if (reading == "*" || surfaceHiragana == reading)
         {
-            element[KEY_READING] = std::move(reading);
+            QVariantMap element;
+            element[KEY_SURFACE] = std::move(surface);
+            result.emplaceBack(std::move(element));
         }
-        result.emplaceBack(std::move(element));
+        else
+        {
+            QList<FuriganaUtils::Pair> pairs =
+                FuriganaUtils::simplifySurface(surface, reading);
+            for (FuriganaUtils::Pair &pair : pairs)
+            {
+                QVariantMap element;
+                element[KEY_SURFACE] = std::move(pair.surface);
+                if (!pair.reading.isEmpty())
+                {
+                    element[KEY_READING] = std::move(pair.reading);
+                }
+                result.emplaceBack(std::move(element));
+            }
+        }
 
         curr = curr->next;
     }

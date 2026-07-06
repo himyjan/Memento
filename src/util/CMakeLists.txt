@@ -4,6 +4,8 @@ add_library(
     directoryutils.h
     fileutils.cpp
     fileutils.h
+    furiganautils.cpp
+    furiganautils.h
     imageutils.cpp
     imageutils.h
     mecabutils.cpp
