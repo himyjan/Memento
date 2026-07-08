@@ -1324,6 +1324,16 @@ void Settings::loadKeybindSettings()
                 ).toString()
             );
         }
+#ifdef MEMENTO_MECAB_SUPPORT
+        if (s.contains(Keys::Keybind::Profile::SUBTITLE_FURIGANA))
+        {
+            profile->setSubtitleFurigana(
+                s.value(
+                    Keys::Keybind::Profile::SUBTITLE_FURIGANA
+                ).toString()
+            );
+        }
+#endif // MEMENTO_MECAB_SUPPORT
         if (s.contains(Keys::Keybind::Profile::SUBTITLE_LIST_COPY_SELECTED))
         {
             profile->setSubtitleListCopySelected(
@@ -1460,6 +1470,12 @@ void Settings::writeKeybindSettings()
             Keys::Keybind::Profile::SUBTITLE_SHOW,
             profile->subtitleShow()
         );
+#ifdef MEMENTO_MECAB_SUPPORT
+        s.setValue(
+            Keys::Keybind::Profile::SUBTITLE_FURIGANA,
+            profile->subtitleFurigana()
+        );
+#endif // MEMENTO_MECAB_SUPPORT
         s.setValue(
             Keys::Keybind::Profile::SUBTITLE_LIST_COPY_SELECTED,
             profile->subtitleListCopySelected()

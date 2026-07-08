@@ -44,6 +44,7 @@ KeybindProfile *KeybindProfile::clone(QObject *parent) const
     copy->setSubtitleMoveDown(subtitleMoveDown());
     copy->setSubtitleMoveUp(subtitleMoveUp());
     copy->setSubtitleShow(subtitleShow());
+    copy->setSubtitleFurigana(subtitleFurigana());
     copy->setSubtitleListCopySelected(subtitleListCopySelected());
     copy->setSubtitleListFind(subtitleListFind());
     copy->setSubtitleListFindNext(subtitleListFindNext());
@@ -258,6 +259,19 @@ void KeybindProfile::setSubtitleShow(const QString &value)
     if (setSequence(m_subtitleShow, value))
     {
         emit subtitleShowChanged(m_subtitleShow.toString());
+    }
+}
+
+QString KeybindProfile::subtitleFurigana() const
+{
+    return m_subtitleFurigana.toString();
+}
+
+void KeybindProfile::setSubtitleFurigana(const QString &value)
+{
+    if (setSequence(m_subtitleFurigana, value))
+    {
+        emit subtitleFuriganaChanged(m_subtitleFurigana.toString());
     }
 }
 

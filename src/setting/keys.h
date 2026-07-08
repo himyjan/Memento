@@ -434,6 +434,7 @@ namespace Keys
             constexpr const char *SUBTITLE_MOVE_DOWN = "sub-move-down";
             constexpr const char *SUBTITLE_MOVE_UP = "sub-move-up";
             constexpr const char *SUBTITLE_SHOW = "sub-show";
+            constexpr const char *SUBTITLE_FURIGANA = "sub-furigana";
             constexpr const char *SUBTITLE_LIST_COPY_SELECTED = "sub-list-copy-selected";
             constexpr const char *SUBTITLE_LIST_FIND = "sub-list-find";
             constexpr const char *SUBTITLE_LIST_FIND_NEXT = "sub-list-find-next";

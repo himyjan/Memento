@@ -342,6 +342,23 @@ Page {
                     Layout.fillWidth: true
                     Layout.margins: root.commonMargin
 
+                    visible: Features.mecab
+
+                    text: qsTr("Toggle subtitle furigana")
+                    sequence: MementoSettings.keybinds?.profile.subtitleFurigana
+                    onSequenceSet: function(seq) {
+                        if (MementoSettings.keybinds.profile)
+                        {
+                            MementoSettings.keybinds.profile.subtitleFurigana = seq;
+                        }
+                    }
+                    onClearClicked: MementoSettings.keybinds.profile.subtitleFurigana = ""
+                }
+
+                KeybindCommand {
+                    Layout.fillWidth: true
+                    Layout.margins: root.commonMargin
+
                     text: qsTr("Decrease subtitle size")
                     sequence: MementoSettings.keybinds?.profile.subtitleDecreaseSize
                     onSequenceSet: function(seq) {

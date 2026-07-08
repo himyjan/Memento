@@ -276,6 +276,18 @@ MenuBar {
 
         Action {
             id: actionShowSubtitles
+
+            readonly property int index: {
+                for (let i = 0; i < subtitleMenu.count; ++i)
+                {
+                    if (subtitleMenu.itemAt(i).action === actionShowSubtitles)
+                    {
+                        return i;
+                    }
+                }
+                return -1;
+            }
+
             text: qsTr("&Show Subtitles")
             checkable: true
             checked: true
@@ -287,6 +299,41 @@ MenuBar {
                     checkable = !checkable;
                     checkable = !checkable;
                 }
+            }
+        }
+
+        Instantiator {
+            /* Hide the action if MeCab is disabled */
+            model: Features.mecab ? 1 : 0
+
+            delegate: Action {
+                text: qsTr("&Show Furigana")
+                checkable: true
+                checked: MementoSettings.searchSubtitleFurigana
+                shortcut: MementoSettings.keybinds.profile?.subtitleFurigana
+                onShortcutChanged: {
+                    /* Hack to force a refresh */
+                    if (Features.isMacos)
+                    {
+                        checkable = !checkable;
+                        checkable = !checkable;
+                    }
+                }
+                onTriggered: MementoSettings.searchSubtitleFurigana = checked
+            }
+
+            onObjectAdded: function(index, object) {
+                subtitleMenu.insertAction(actionShowSubtitles.index + 1, object);
+
+                /* Hack to force a refresh */
+                if (Features.isMacos)
+                {
+                    object.checkable = !object.checkable;
+                    object.checkable = !object.checkable;
+                }
+            }
+            onObjectRemoved: function(index, object) {
+                subtitleMenu.removeAction(object);
             }
         }
 

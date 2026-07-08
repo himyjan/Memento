@@ -145,6 +145,13 @@ class KeybindProfile : public QObject
     )
 
     Q_PROPERTY(
+        QString subtitleFurigana
+        READ subtitleFurigana
+        WRITE setSubtitleFurigana
+        NOTIFY subtitleFuriganaChanged
+    )
+
+    Q_PROPERTY(
         QString subtitleListCopySelected
         READ subtitleListCopySelected
         WRITE setSubtitleListCopySelected
@@ -425,6 +432,21 @@ public:
     void setSubtitleShow(const QString &value);
 
     /**
+     * @brief Get the show subtile furigana key sequence.
+     *
+     * @return The show subtitle furigana key sequence.
+     */
+    [[nodiscard]]
+    QString subtitleFurigana() const;
+
+    /**
+     * @brief Set the show subtitle furigana key sequence.
+     *
+     * @param value The show subtitle furigana key sequence.
+     */
+    void setSubtitleFurigana(const QString &value);
+
+    /**
      * @brief Get the subtile list copy selected key sequence.
      *
      * @return The subtile list copy selected key sequence.
@@ -598,6 +620,13 @@ signals:
     void subtitleShowChanged(const QString &value);
 
     /**
+     * @brief Emitted when the show subtitle furigana key sequence is changed.
+     *
+     * @param value The new subtile furigana key sequence.
+     */
+    void subtitleFuriganaChanged(const QString &value);
+
+    /**
      * @brief Emitted when the subtitle list copy selected key sequence is
      * changed.
      *
@@ -718,6 +747,13 @@ private:
         Qt::KeyboardModifier::ControlModifier | Qt::Key_0
     };
 
+    /* Toggle subtitle furigana */
+    QKeySequence m_subtitleFurigana{
+#ifdef MEMENTO_MECAB_SUPPORT
+        Qt::KeyboardModifier::AltModifier | Qt::Key_A
+#endif // MEMENTO_MECAB_SUPPORT
+    };
+
     /* Copy the selected subtitle list content */
     QKeySequence m_subtitleListCopySelected{
         Qt::KeyboardModifier::ControlModifier |
@@ -754,6 +790,9 @@ private:
         m_subtitleMoveDown.toString(),
         m_subtitleMoveUp.toString(),
         m_subtitleShow.toString(),
+#ifdef MEMENTO_MECAB_SUPPORT
+        m_subtitleFurigana.toString(),
+#endif // MEMENTO_MECAB_SUPPORT
         m_subtitleListCopySelected.toString(),
         m_subtitleListFind.toString(),
         m_subtitleListFindNext.toString(),
