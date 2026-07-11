@@ -21,22 +21,30 @@
 #pragma once
 
 #include <QQuickImageProvider>
+#include <QString>
 
 /**
- * @brief Fills SVG with a requested color.
+ * @brief Fills Qt resource and local image alpha masks with color.
  */
-class ColoredSvgProvider : public QQuickImageProvider
+class ColoredImageProvider : public QQuickImageProvider
 {
 public:
-    ColoredSvgProvider();
-    virtual ~ColoredSvgProvider() = default;
+    /**
+     * @brief Creates a provider for resource and local images.
+     */
+    ColoredImageProvider();
+
+    /**
+     * @brief Destroys the image provider.
+     */
+    virtual ~ColoredImageProvider() = default;
 
     /**
      * @brief Request an image with a fill.
      *
-     * @param id The ID of the requested image. Follows the format of
-     * filename/color where images/filename.svg is filled with the requested
-     * color. If color is omitted, the color is the system palette text color.
+     * @param id The request in source-type/encoded-path/argb-color format.
+     * The source type is resource for a Qt resource path or file for an
+     * absolute local path.
      * @param size The size of the requested image.
      * @param requestedSize The requested size of the image.
      * @return The requested icon with a fill. Empty image if failure.

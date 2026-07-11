@@ -1,7 +1,11 @@
 add_library(
     definition
     structuredrichtext.cpp
+    structuredrichtext_content.cpp
+    structuredrichtext_css.cpp
+    structuredrichtext_layout.cpp
     structuredrichtext.h
+    structuredrichtext_p.h
 )
 target_compile_features(definition PRIVATE cxx_std_20)
 target_include_directories(definition PRIVATE ${MEMENTO_INCLUDE_DIRS})

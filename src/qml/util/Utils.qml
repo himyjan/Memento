@@ -6,7 +6,7 @@ import Ripose.Memento
 
 QtObject {
     /**
-     * Converts a name and color to an svgicon provider.
+     * Converts a built-in image name and color to a colored-image URL.
      * @param name The name of the SVG icon in the images/ path.
      * @param color The color to set the text to.
      * @return The image provider path for that SVG and color.
@@ -20,7 +20,9 @@ QtObject {
                           componentToHex(color.r) +
                           componentToHex(color.g) +
                           componentToHex(color.b);
-        return `image://svgicon/${name}/${colorString}`;
+        const sourcePath = `:/images/${name}.svg`;
+        return "image://colored-image/resource/" +
+               `${encodeURIComponent(sourcePath)}/${colorString}`;
     }
 
     /**
@@ -77,14 +79,20 @@ QtObject {
         case MementoSetting.DirectoryCurrent:
             return ".";
         case MementoSetting.DirectoryMovies:
-            return StandardPaths.standardLocations(StandardPaths.MoviesLocation)[0];
+            return StandardPaths.standardLocations(
+                StandardPaths.MoviesLocation
+            )[0];
         case MementoSetting.DirectoryDocuments:
-            return StandardPaths.standardLocations(StandardPaths.DocumentsLocation)[0];
+            return StandardPaths.standardLocations(
+                StandardPaths.DocumentsLocation
+            )[0];
         case MementoSetting.DirectoryCustom:
             return MementoSettings.behaviorFileOpenCustom;
         case MementoSetting.DirectoryHome:
         default:
-            return StandardPaths.standardLocations(StandardPaths.HomeLocation)[0];
+            return StandardPaths.standardLocations(
+                StandardPaths.HomeLocation
+            )[0];
         }
     }
 

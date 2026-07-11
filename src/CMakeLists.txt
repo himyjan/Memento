@@ -140,7 +140,7 @@ target_link_libraries(
     PRIVATE anki
     PRIVATE audioplayer
     PRIVATE clipboard
-    PRIVATE coloredsvgprovider
+    PRIVATE coloredimageprovider
     PRIVATE definition
     PRIVATE dictionary
     PRIVATE features

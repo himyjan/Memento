@@ -57,7 +57,7 @@
 #include "player/mpvplayer.h"
 #include "player/mpvthumbnail.h"
 #include "quick/clipboard.h"
-#include "quick/coloredsvgprovider.h"
+#include "quick/coloredimageprovider.h"
 #include "quick/features.h"
 #include "quick/furiganaparser.h"
 #include "quick/keytracker.h"
@@ -279,7 +279,7 @@ static void registerQmlTypes(Context &context)
  */
 static void registerImageProviders(QQmlApplicationEngine &engine)
 {
-    engine.addImageProvider("svgicon", new ColoredSvgProvider);
+    engine.addImageProvider("colored-image", new ColoredImageProvider);
 }
 
 /**

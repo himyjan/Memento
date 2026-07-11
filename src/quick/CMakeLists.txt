@@ -13,17 +13,18 @@ target_link_libraries(
 )
 
 add_library(
-    coloredsvgprovider
-    coloredsvgprovider.cpp
-    coloredsvgprovider.h
+    coloredimageprovider
+    coloredimageprovider.cpp
+    coloredimageprovider.h
 )
-target_compile_features(coloredsvgprovider PRIVATE cxx_std_20)
-target_include_directories(coloredsvgprovider PRIVATE ${MEMENTO_INCLUDE_DIRS})
-target_compile_options(coloredsvgprovider PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_compile_features(coloredimageprovider PRIVATE cxx_std_20)
+target_include_directories(coloredimageprovider PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_compile_options(coloredimageprovider PRIVATE ${MEMENTO_COMPILER_FLAGS})
 target_link_libraries(
-    coloredsvgprovider
+    coloredimageprovider
     PRIVATE Qt6::Gui
     PRIVATE Qt6::Svg
+    PRIVATE utils
     PUBLIC Qt6::Quick
 )
 

@@ -15,7 +15,9 @@ endif()
 # Set the default build type
 set(default_build_type "RelWithDebInfo")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+	message(STATUS
+        "Setting build type to '${default_build_type}' as none was specified."
+    )
 	set(
 		CMAKE_BUILD_TYPE "${default_build_type}" CACHE
     	STRING "Choose the type of build." FORCE
@@ -30,14 +32,20 @@ endif()
 # Require out-of-source builds
 file(TO_CMAKE_PATH "${PROJECT_BINARY_DIR}/CMakeLists.txt" LOC_PATH)
 if(EXISTS "${LOC_PATH}")
-    message(FATAL_ERROR "You cannot build in a source directory (or any directory with a CMakeLists.txt file). Please make a build subdirectory. Feel free to remove CMakeCache.txt and CMakeFiles.")
+    message(FATAL_ERROR
+        "You cannot build in a source directory (or any directory with a "
+        "CMakeLists.txt file). Please make a build subdirectory. Feel free "
+        "to remove CMakeCache.txt and CMakeFiles."
+    )
 endif()
 
 add_subdirectory(option)
 
 # Check that dangerous options have no been toggled
 if(NOT APPLE AND MEMENTO_BUNDLE)
-	message(FATAL_ERROR "You cannot set the MEMENTO_BUNDLE option to ON on non-Apple platforms.")
+	message(FATAL_ERROR
+        "You cannot set MEMENTO_BUNDLE to ON on non-Apple platforms."
+    )
 endif()
 
 # Set the module path
@@ -53,12 +61,13 @@ list(
 	"-Wall"
 	"-Wextra"
 	"-Wpedantic"
-	"$<$<BOOL:${MEMENTO_BUNDLE}>:-DMEMENTO_BUNDLE=1>"
 	"$<$<BOOL:${MEMENTO_ASAN}>:-fsanitize=address>"
+	"$<$<BOOL:${MEMENTO_BUNDLE}>:-DMEMENTO_BUNDLE=1>"
 	"$<$<BOOL:${MEMENTO_MECAB_SUPPORT}>:-DMEMENTO_MECAB_SUPPORT=1>"
 	"$<$<BOOL:${MEMENTO_OCR_SUPPORT}>:-DMEMENTO_OCR_SUPPORT=1>"
 	"$<$<BOOL:${MEMENTO_QAPPLICATION}>:-DMEMENTO_QAPPLICATION=1>"
 	"$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:-DMEMENTO_SYSTEM_QCORO=1>"
+	"$<$<BOOL:${MEMENTO_WARN_UNSUPPORTED_CSS}>:-DMEMENTO_WARN_UNSUPPORTED_CSS=1>"
 	"$<$<BOOL:${MEMENTO_WERROR}>:-Werror>"
 )
 if(MEMENTO_ASAN)
@@ -165,7 +174,10 @@ endif()
 if(MEMENTO_QAPPLICATION)
 	list(APPEND MEMENTO_QT_COMPONENTS Widgets)
 endif()
-set(QT_NO_PRIVATE_MODULE_WARNING ON CACHE BOOL "Suppress Qt private module warning" FORCE)
+set(
+    QT_NO_PRIVATE_MODULE_WARNING ON CACHE BOOL
+    "Suppress Qt private module warning" FORCE
+)
 find_package(Qt6 REQUIRED COMPONENTS ${MEMENTO_QT_COMPONENTS})
 unset(MEMENTO_QT_COMPONENTS)
 

@@ -24,6 +24,7 @@
 #include <QList>
 #include <QSet>
 #include <QString>
+#include <QStringList>
 
 /**
  * @brief Class holding dictionary style information.
@@ -177,8 +178,21 @@ public:
         /* Ordered candidate rule indexes for each target tag */
         QHash<QString, QList<qsizetype>> ruleIndexesByTargetTag;
 
+        /* Candidates without a target :nth-child() restriction by tag */
+        QHash<QString, QList<qsizetype>> nonNthRuleIndexesByTargetTag;
+
+        /* Candidates for an exact target :nth-child() restriction by tag */
+        QHash<QString, QHash<qsizetype, QList<qsizetype>>>
+            ruleIndexesByTargetTagAndChildIndex;
+
         /* True when any selector needs a total element-child count */
         bool usesElementChildCount{false};
+
+        /* Tags whose selector parts use :last-child() */
+        QSet<QString> elementChildCountTags;
+
+        /* CSS compatibility limitations recorded while parsing */
+        QStringList diagnostics;
     };
 
     /**
@@ -207,39 +221,32 @@ public:
     const QList<qsizetype> &candidateRuleIndexes(
         const QString &tag) const noexcept;
 
+    /**
+     * @brief Get CSS candidates for an element tag and child index.
+     *
+     * Rules with an exact positive target :nth-child() selector are only
+     * included for their matching one-based index. The returned list keeps
+     * stylesheet source order.
+     *
+     * @param tag The original structured element tag.
+     * @param childIndex The element's one-based index among its siblings.
+     * @return Rule indexes that can match the target element.
+     */
+    [[nodiscard]]
+    const QList<qsizetype> &candidateRuleIndexes(
+        const QString &tag,
+        qsizetype childIndex) const noexcept;
+
+    /**
+     * @brief Check whether a tag can need a total sibling element count.
+     *
+     * @param tag The structured element tag.
+     * @return True when a selector part for the tag uses :last-child().
+     */
+    [[nodiscard]]
+    bool needsElementChildCountForTag(const QString &tag) const noexcept;
+
 private:
-    /**
-     * @brief Parse dictionary CSS rules supported by Qt rich text.
-     *
-     * @param css The dictionary stylesheet.
-     * @return The parsed stylesheet.
-     */
-    [[nodiscard]]
-    static ParsedStylesheet parseStylesheet(const QString &css);
-
-    /**
-     * @brief Parse a CSS selector into selector parts.
-     *
-     * @param selector The selector to parse.
-     * @param pseudoElement Set to the selector's generated-content target.
-     * @param specificity Set to the selector specificity.
-     * @return The parsed selector parts.
-     */
-    [[nodiscard]]
-    static QList<CssSelectorPart> parseCssSelector(
-        const QString &selector,
-        CssPseudoElement &pseudoElement,
-        int &specificity);
-
-    /**
-     * @brief Parse CSS declarations into a declaration list.
-     *
-     * @param body The CSS declaration body.
-     * @return The parsed declarations in source order.
-     */
-    [[nodiscard]]
-    static QList<CssDeclaration> parseCssDeclarations(const QString &body);
-
     /* Raw content of the CSS stylesheet */
     const QString m_stylesheet;
 

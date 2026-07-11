@@ -14,7 +14,65 @@ SearchableText {
     required property TermDefinition definition
     required property color canvasColor
 
-    readonly property string ankiSelectedText: root.cleanSelectedText(root.selectedText)
+    /* State overrides for interactive structured <details> elements. */
+    property var detailStates: ({})
+
+    /* Overlay used to place the tooltip above the application content. */
+    readonly property var tooltipOverlay: Overlay.overlay
+
+    /* Tooltip parent, with this text item as a safe creation-time fallback. */
+    readonly property Item tooltipParent: root.tooltipOverlay || root
+
+    /* Internal link prefix emitted for structured dictionary anchors. */
+    readonly property string glossaryLinkPrefix: "memento://glossary-link?"
+
+    /* Internal link prefix emitted for structured <details> summaries. */
+    readonly property string glossaryDetailsPrefix:
+        "memento://glossary-details?"
+
+    /* Delay before showing a title tooltip after a link hover. */
+    readonly property int titleTooltipDelayMs: 500
+
+    /* Delay used when a tooltip is shown by this component. */
+    readonly property int tooltipImmediateDelayMs: 0
+
+    /* Space between a tooltip and its text anchor. */
+    readonly property real tooltipAnchorGap: 4
+
+    /* Minimum distance between a tooltip and an Overlay edge. */
+    readonly property real tooltipEdgeMargin: 4
+
+    /* Qt's private rich-text sentinel range start code point. */
+    readonly property int qtDocumentSentinelStartCode: 0xFDD0
+
+    /* Qt's private rich-text sentinel range end code point. */
+    readonly property int qtDocumentSentinelEndCode: 0xFDEF
+
+    /* Qt's inline object replacement character code point. */
+    readonly property int qtObjectReplacementCharacterCode: 0xFFFC
+
+    /* Sentinel marking the start of an emitted list item. */
+    readonly property string listItemSentinel: "\u2060"
+
+    /* Sentinel pair surrounding an emitted list marker. */
+    readonly property string listMarkerStartSentinel: "\u2061"
+    readonly property string listMarkerEndSentinel: "\u2062"
+
+    /* Sentinel pair surrounding generated disclosure controls. */
+    readonly property string detailsControlStartSentinel: "\u2063"
+    readonly property string detailsControlEndSentinel: "\u2064"
+
+    /* Sentinel pair surrounding a synthetic inline table-cell boundary. */
+    readonly property string inlineCellGapStartSentinel: "\u2065"
+    readonly property string inlineCellGapEndSentinel: "\u206A"
+
+    /* Characters normalized while exporting selected rich text. */
+    readonly property string paragraphSeparator: "\u2029"
+    readonly property string noBreakSpace: "\u00A0"
+    readonly property string selectionLineBreak: "\n"
+
+    readonly property string ankiSelectedText:
+        root.cleanSelectedText(root.selectedText)
 
     signal searchRequested(query: string)
 
@@ -75,6 +133,33 @@ SearchableText {
     }
 
     /**
+     * Toggle a structured <details> state without mutating the bound map.
+     * @param args The decoded details link arguments.
+     */
+    function toggleDetailState(args) {
+        const detailId = args.id ? args.id : "";
+        if (detailId.length === 0)
+        {
+            return;
+        }
+
+        const states = {};
+        for (const stateId in root.detailStates)
+        {
+            states[stateId] = root.detailStates[stateId];
+        }
+        states[detailId] = args.open !== "1";
+        root.detailStates = states;
+    }
+
+    /**
+     * Discard disclosure overrides before rendering a different definition.
+     */
+    function resetDetailStates() {
+        root.detailStates = ({});
+    }
+
+    /**
      * Convert a tooltip type name to the enum value.
      * @param tooltipType The tooltip type name.
      * @return The tooltip type enum value.
@@ -98,7 +183,13 @@ SearchableText {
      * @param link The link to open.
      */
     function openLink(link) {
-        if (link.startsWith("memento://glossary-link?"))
+        if (link.startsWith(root.glossaryDetailsPrefix))
+        {
+            root.toggleDetailState(root.linkArgs(link));
+            return;
+        }
+
+        if (link.startsWith(root.glossaryLinkPrefix))
         {
             const args = root.linkArgs(link);
             if (args.target)
@@ -169,45 +260,87 @@ SearchableText {
     }
 
     /**
+     * Map the active tooltip anchor into its current parent coordinates.
+     * @return The anchor rectangle in tooltip-parent coordinates.
+     */
+    function tooltipAnchorRect() {
+        if (root.tooltipType === GlossaryText.TooltipType.Ruby)
+        {
+            return root.mapToItem(root.tooltipParent, root.rubyTooltipRect);
+        }
+
+        const titleRect = Qt.rect(
+            root.titleTooltipPosition.x,
+            root.titleTooltipPosition.y,
+            0,
+            0
+        );
+        return root.mapToItem(root.tooltipParent, titleRect);
+    }
+
+    /**
+     * Return the width available to a tooltip within its current parent.
+     * @return The capped tooltip width.
+     */
+    function tooltipWidth() {
+        const availableWidth = Math.max(
+            0,
+            root.tooltipParent.width - root.tooltipEdgeMargin * 2
+        );
+        return Math.min(glossaryToolTip.implicitWidth, availableWidth);
+    }
+
+    /**
+     * Return the current tooltip height after its width is resolved.
+     * @return The tooltip height.
+     */
+    function tooltipHeight() {
+        return Math.max(
+            glossaryToolTip.implicitHeight,
+            glossaryToolTip.height
+        );
+    }
+
+    /**
      * Return the x-coordinate for the current glossary tooltip.
-     * @return The tooltip x-coordinate.
+     * @return The clamped tooltip x-coordinate in parent coordinates.
      */
     function tooltipX() {
-        switch (root.tooltipType)
-        {
-        case GlossaryText.TooltipType.Ruby:
-            return root.rubyTooltipRect.x +
-                (root.rubyTooltipRect.width - glossaryToolTip.implicitWidth) / 2;
-
-        case GlossaryText.TooltipType.Title:
-        default:
-            return root.titleTooltipPosition.x - glossaryToolTip.implicitWidth / 2;
-        }
+        const anchor = root.tooltipAnchorRect();
+        const width = root.tooltipWidth();
+        const preferredX = anchor.x + (anchor.width - width) / 2;
+        const maximumX = Math.max(
+            root.tooltipEdgeMargin,
+            root.tooltipParent.width - width - root.tooltipEdgeMargin
+        );
+        return Math.max(
+            root.tooltipEdgeMargin,
+            Math.min(preferredX, maximumX)
+        );
     }
 
     /**
      * Return the y-coordinate for the current glossary tooltip.
-     * @return The tooltip y-coordinate.
+     * @return The clamped tooltip y-coordinate in parent coordinates.
      */
     function tooltipY() {
-        switch (root.tooltipType)
+        const anchor = root.tooltipAnchorRect();
+        const height = root.tooltipHeight();
+        const aboveY = anchor.y - height - root.tooltipAnchorGap;
+        if (aboveY >= root.tooltipEdgeMargin)
         {
-        case GlossaryText.TooltipType.Ruby:
-            return root.rubyTooltipRect.y -
-                glossaryToolTip.implicitHeight -
-                glossaryToolTip.margin;
+            return aboveY;
+        }
 
-        case GlossaryText.TooltipType.Title:
-        default:
-        {
-            const tooltipHeight = glossaryToolTip.implicitHeight > 0 ?
-                glossaryToolTip.implicitHeight :
-                glossaryToolTip.height;
-            return root.titleTooltipPosition.y -
-                tooltipHeight -
-                glossaryToolTip.margin;
-        }
-        }
+        const belowY = anchor.y + anchor.height + root.tooltipAnchorGap;
+        const maximumY = Math.max(
+            root.tooltipEdgeMargin,
+            root.tooltipParent.height - height - root.tooltipEdgeMargin
+        );
+        return Math.max(
+            root.tooltipEdgeMargin,
+            Math.min(belowY, maximumY)
+        );
     }
 
     /**
@@ -216,30 +349,37 @@ SearchableText {
      * @return true if the character should not be exported.
      */
     function isQtDocumentSentinel(ch) {
-        const qtSentinelRangeStartCode = 0xFDD0;
-        const qtSentinelRangeEndCode = 0xFDEF;
-        const qtObjectReplacementCharacterCode = 0xFFFC;
         const code = ch.charCodeAt(0);
-        return (code >= qtSentinelRangeStartCode &&
-                code <= qtSentinelRangeEndCode) ||
-                code === qtObjectReplacementCharacterCode;
+        return (code >= root.qtDocumentSentinelStartCode &&
+                code <= root.qtDocumentSentinelEndCode) ||
+                code === root.qtObjectReplacementCharacterCode;
     }
 
     /**
-     * Remove generated glossary list markers and hidden rich-text sentinels.
+     * Append one normalized line break unless the output already ends in one.
+     * @param out The generated selection text characters.
+     */
+    function appendSelectionLineBreak(out) {
+        if (out.length > 0 &&
+            out[out.length - 1] !== root.selectionLineBreak)
+        {
+            out.push(root.selectionLineBreak);
+        }
+    }
+
+    /**
+     * Remove generated glossary controls and hidden rich-text sentinels.
      * @param text The raw selected text from TextEdit.
      * @return Text suitable for Anki marker output.
      */
     function cleanSelectedText(text) {
-        const listItemSentinel = "\u2060";
-        const listMarkerStartSentinel = "\u2061";
-        const listMarkerEndSentinel = "\u2062";
-        const paragraphSeparator = "\u2029";
-        const noBreakSpace = "\u00A0";
-
         let out = [];
         let boundary = 0;
+        /* Rewind a selection that starts inside a disclosure control. */
+        let detailsControlBoundary = 0;
         let inListMarker = false;
+        let inDetailsControl = false;
+        let inInlineCellGap = false;
         let inGeneratedListItem = false;
         let generatedListItemHasText = false;
         let discardSpacerAfterGeneratedListBoundary = false;
@@ -247,14 +387,28 @@ SearchableText {
         for (let i = 0; i < text.length; ++i)
         {
             const ch = text.charAt(i);
+            if (ch === root.inlineCellGapStartSentinel)
+            {
+                inInlineCellGap = true;
+                continue;
+            }
+            if (ch === root.inlineCellGapEndSentinel)
+            {
+                inInlineCellGap = false;
+                continue;
+            }
+            if (inInlineCellGap &&
+                (root.isQtDocumentSentinel(ch) ||
+                 ch === root.paragraphSeparator ||
+                 ch === root.selectionLineBreak))
+            {
+                continue;
+            }
             if (root.isQtDocumentSentinel(ch))
             {
                 if (inGeneratedListItem && generatedListItemHasText)
                 {
-                    if (out.length > 0 && out[out.length - 1] !== "\n")
-                    {
-                        out.push("\n");
-                    }
+                    root.appendSelectionLineBreak(out);
                     boundary = out.length;
                     inGeneratedListItem = false;
                     generatedListItemHasText = false;
@@ -262,20 +416,42 @@ SearchableText {
                 }
                 continue;
             }
+            if (ch === root.detailsControlStartSentinel)
+            {
+                detailsControlBoundary = out.length;
+                inDetailsControl = true;
+                continue;
+            }
+            if (ch === root.detailsControlEndSentinel)
+            {
+                if (inDetailsControl)
+                {
+                    inDetailsControl = false;
+                }
+                else
+                {
+                    out.length = detailsControlBoundary;
+                }
+                continue;
+            }
+            if (inDetailsControl)
+            {
+                continue;
+            }
             if (discardSpacerAfterGeneratedListBoundary)
             {
-                if (ch === noBreakSpace || ch === " " || ch === "\t")
+                if (ch === root.noBreakSpace || ch === " " || ch === "\t")
                 {
                     continue;
                 }
                 discardSpacerAfterGeneratedListBoundary = false;
             }
-            if (ch === listMarkerStartSentinel)
+            if (ch === root.listMarkerStartSentinel)
             {
                 inListMarker = true;
                 continue;
             }
-            if (ch === listMarkerEndSentinel)
+            if (ch === root.listMarkerEndSentinel)
             {
                 if (inListMarker)
                 {
@@ -291,24 +467,23 @@ SearchableText {
             {
                 continue;
             }
-            if (ch === listItemSentinel)
+            if (ch === root.listItemSentinel)
             {
-                if (out.length > 0 && out[out.length - 1] !== "\n")
-                {
-                    out.push("\n");
-                }
+                root.appendSelectionLineBreak(out);
                 boundary = out.length;
                 inGeneratedListItem = true;
                 generatedListItemHasText = false;
                 continue;
             }
-            out.push(ch === paragraphSeparator ? "\n" : ch);
+            out.push(
+                ch === root.paragraphSeparator ? root.selectionLineBreak : ch
+            );
             generatedListItemHasText = inGeneratedListItem;
         }
 
         return out.join("")
-                  .replace(/[ \t]*\n[ \t]*/g, "\n")
-                  .replace(/\n{2,}/g, "\n")
+                  .replace(/[ \t]*\n[ \t]*/g, root.selectionLineBreak)
+                  .replace(/\n\n+/g, root.selectionLineBreak)
                   .trim();
     }
 
@@ -335,11 +510,14 @@ SearchableText {
     font.weight: MementoSettings.interfaceSearchGlossaryFont.weight
     font.overline: MementoSettings.interfaceSearchGlossaryFont.overline
     font.strikeout: MementoSettings.interfaceSearchGlossaryFont.strikeout
-    font.letterSpacing: MementoSettings.interfaceSearchGlossaryFont.letterSpacing
+    font.letterSpacing:
+        MementoSettings.interfaceSearchGlossaryFont.letterSpacing
     font.wordSpacing: MementoSettings.interfaceSearchGlossaryFont.wordSpacing
     font.kerning: MementoSettings.interfaceSearchGlossaryFont.kerning
-    font.preferShaping: MementoSettings.interfaceSearchGlossaryFont.preferShaping
-    font.hintingPreference: MementoSettings.interfaceSearchGlossaryFont.hintingPreference
+    font.preferShaping:
+        MementoSettings.interfaceSearchGlossaryFont.preferShaping
+    font.hintingPreference:
+        MementoSettings.interfaceSearchGlossaryFont.hintingPreference
     font.styleName: MementoSettings.interfaceSearchGlossaryFont.styleName
 
     text: StructuredRichText.parse(
@@ -349,14 +527,17 @@ SearchableText {
               root,
               root.font,
               root.color,
-              root.canvasColor)
+              root.canvasColor,
+              root.detailStates)
+
+    onDefinitionChanged: root.resetDetailStates()
 
     onLinkActivated: function(link) {
         root.openLink(link);
     }
 
     onLinkHovered: function(link) {
-        if (link.startsWith("memento://glossary-link?"))
+        if (link.startsWith(root.glossaryLinkPrefix))
         {
             const args = root.linkArgs(link);
             const linkChanged = root.tooltipLink !== link;
@@ -424,7 +605,7 @@ SearchableText {
     Timer {
         id: titleTooltipTimer
 
-        interval: 500
+        interval: root.titleTooltipDelayMs
         repeat: false
         onTriggered: {
             if (root.tooltip.length > 0 &&
@@ -439,13 +620,13 @@ SearchableText {
     ToolTip {
         id: glossaryToolTip
 
-        readonly property real margin: 4
-
+        parent: root.tooltipParent
         visible: root.visible &&
                  root.tooltip.length > 0 &&
                  root.tooltipVisible
-        delay: 0
+        delay: root.tooltipImmediateDelayMs
         text: root.tooltip
+        width: root.tooltipWidth()
         x: root.tooltipX()
         y: root.tooltipY()
     }

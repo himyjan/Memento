@@ -5,6 +5,8 @@ add_library(
     dictionaryinfo.h
     dictionarystyles.cpp
     dictionarystyles.h
+    dictionarystyles_parser.cpp
+    dictionarystyles_p.h
     expression.cpp
     expression.h
     frequency.cpp

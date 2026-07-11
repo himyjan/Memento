@@ -9,6 +9,7 @@ option(MEMENTO_RELEASE_BUILD "Toggle to build with release settings" OFF)
 # Debugging
 option(MEMENTO_WERROR "Use -Werror when compiling" OFF)
 option(MEMENTO_ASAN "Enable the address sanitizer" OFF)
+option(MEMENTO_WARN_UNSUPPORTED_CSS "Enable log messages for unsupported CSS" OFF)
 
 # Use Local System Libraries
 option(MEMENTO_SYSTEM_MOCR "Use the local installation of libmocr instead of FetchContent" OFF)
