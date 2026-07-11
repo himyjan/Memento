@@ -15,20 +15,21 @@ S="${WORKDIR}/Memento-${PV}"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-IUSE="mecab widgets"
+IUSE="kimageformats mecab widgets"
 
 DEPEND="
-    dev-libs/libzip
-    mecab? ( app-text/mecab )
-    mecab? ( app-dicts/mecab-ipadic )
-    dev-db/sqlite
-    media-video/mpv:=[libmpv]
-    dev-libs/json-c
     >=dev-qt/qtbase-6.9.0:6
+    dev-db/sqlite
+    dev-libs/json-c
+    dev-libs/libzip
+    dev-libs/qcoro
     dev-qt/qtsvg
-    dev-libs/qcoro"
+    mecab? ( app-dicts/mecab-ipadic )
+    mecab? ( app-text/mecab )
+    media-video/mpv:=[libmpv]"
 RDEPEND="
     ${DEPEND}
+    kimageformats? ( kde-frameworks/kimageformats )
     media-fonts/noto-cjk"
 BDEPEND="
     >=dev-build/cmake-3.16.0"
