@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <limits>
+#include <utility>
 
 #include <QScopeGuard>
 #include <QTemporaryFile>
@@ -512,43 +513,56 @@ void MpvController::sendMouse(double x, double y)
 }
 
 void MpvController::sendMouseButton(
-    double x, double y, Qt::MouseButton button, bool single)
+    double x,
+    double y,
+    Qt::MouseButton button,
+    int modifiers,
+    bool pressed)
 {
-    QByteArray buttonArg;
-    switch (button)
+    QString buttonName = toMouseButtonString(button);
+    if (buttonName.isEmpty())
     {
-    case Qt::MouseButton::LeftButton:
-        buttonArg = "0";
-        break;
-    case Qt::MouseButton::MiddleButton:
-        buttonArg = "1";
-        break;
-    case Qt::MouseButton::RightButton:
-        buttonArg = "2";
-        break;
-    case Qt::MouseButton::BackButton:
-        buttonArg = "7";
-        break;
-    case Qt::MouseButton::ForwardButton:
-        buttonArg = "8";
-        break;
-    default:
         return;
     }
-    QByteArray xArg = QString::number(static_cast<int>(x)).toUtf8();
-    QByteArray yArg = QString::number(static_cast<int>(y)).toUtf8();
-    const char *mouseArgs[]{
-        "mouse",
-        xArg,
-        yArg,
-        buttonArg,
-        single ? "single" : "double",
-        nullptr
-    };
-    if (::mpv_command_async(handle(), 0, mouseArgs) < 0)
+
+    sendMouse(x, y);
+
+    if (pressed)
     {
-        qWarning("Could not send mouse button");
+        QByteArray key = (toModifierString(modifiers) + buttonName).toUtf8();
+
+        /* Recover from a duplicate press without a corresponding release. */
+        auto previous = m_pressedMouseButtons.find(button);
+        if (previous != m_pressedMouseButtons.end())
+        {
+            sendMouseKey(previous.value(), false);
+        }
+
+        if (sendMouseKey(key, true))
+        {
+            m_pressedMouseButtons.insert(button, key);
+        }
     }
+    else
+    {
+        QByteArray key = (toModifierString(modifiers) + buttonName).toUtf8();
+        auto previous = m_pressedMouseButtons.find(button);
+        if (previous != m_pressedMouseButtons.end())
+        {
+            key = previous.value();
+            m_pressedMouseButtons.erase(previous);
+        }
+        sendMouseKey(key, false);
+    }
+}
+
+void MpvController::releaseMouseButtons()
+{
+    for (const QByteArray &key : std::as_const(m_pressedMouseButtons))
+    {
+        sendMouseKey(key, false);
+    }
+    m_pressedMouseButtons.clear();
 }
 
 void MpvController::sendWheel(double x, double y, QPoint angleDelta)
@@ -902,6 +916,44 @@ QString MpvController::toModifierString(int modifiers)
         keypress += "Meta+";
     }
     return keypress;
+}
+
+QString MpvController::toMouseButtonString(Qt::MouseButton button)
+{
+    switch (button)
+    {
+    case Qt::MouseButton::LeftButton:
+        return "MOUSE_BTN0";
+    case Qt::MouseButton::MiddleButton:
+        return "MOUSE_BTN1";
+    case Qt::MouseButton::RightButton:
+        return "MOUSE_BTN2";
+    case Qt::MouseButton::BackButton:
+        return "MOUSE_BTN7";
+    case Qt::MouseButton::ForwardButton:
+        return "MOUSE_BTN8";
+    default:
+        return {};
+    }
+}
+
+bool MpvController::sendMouseKey(const QByteArray &key, bool pressed)
+{
+    const char *args[]{
+        pressed ? "keydown" : "keyup",
+        key,
+        nullptr
+    };
+    if (::mpv_command_async(handle(), 0, args) < 0)
+    {
+        qWarning(
+            "Could not send mouse button %s for '%s'",
+            pressed ? "press" : "release",
+            key.constData()
+        );
+        return false;
+    }
+    return true;
 }
 
 QString MpvController::encodeFile(

@@ -175,6 +175,28 @@ MpvPlayer {
             event.accepted = false;
         }
 
+        onPressed: function(event) {
+            root.controller.sendMouseButton(
+                event.x,
+                event.y,
+                event.button,
+                event.modifiers,
+                true
+            );
+        }
+
+        onReleased: function(event) {
+            root.controller.sendMouseButton(
+                event.x,
+                event.y,
+                event.button,
+                event.modifiers,
+                false
+            );
+        }
+
+        onCanceled: root.controller.releaseMouseButtons()
+
         onClicked: function(event) {
             /* This hack makes it so keys are still handled and the player has focus */
             root.forceActiveFocus();
@@ -182,12 +204,6 @@ MpvPlayer {
             root.forceActiveFocus();
 
             definitionPopup.clearResults();
-            root.controller.sendMouseButton(event.x, event.y, event.button, true);
-            event.accepted = false;
-        }
-
-        onDoubleClicked: function(event) {
-            root.controller.sendMouseButton(event.x, event.y, event.button, false);
             event.accepted = false;
         }
     }

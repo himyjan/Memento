@@ -24,6 +24,7 @@
 
 #include <optional>
 
+#include <QHash>
 #include <QImage>
 #include <QPoint>
 #include <QSet>
@@ -303,10 +304,20 @@ public:
      * @param x The x-coordinate of the cursor.
      * @param y The y-coordinate of the cursor.
      * @param button The button pressed.
-     * @param single true for a single click, false for a double.
+     * @param modifiers The modifiers held.
+     * @param pressed true if the button was pressed, false if it was released.
      */
     Q_INVOKABLE void sendMouseButton(
-        double x, double y, Qt::MouseButton button, bool single);
+        double x,
+        double y,
+        Qt::MouseButton button,
+        int modifiers,
+        bool pressed);
+
+    /**
+     * @brief Releases all mouse buttons currently held by mpv.
+     */
+    Q_INVOKABLE void releaseMouseButtons();
 
     /**
      * @brief Sends a mouse wheel event to the player.
@@ -452,6 +463,24 @@ private:
     static QString toModifierString(int modifier);
 
     /**
+     * @brief Converts a Qt mouse button into an mpv key name.
+     *
+     * @param button The mouse button to convert.
+     * @return The mpv key name, or an empty string if unsupported.
+     */
+    [[nodiscard]]
+    static QString toMouseButtonString(Qt::MouseButton button);
+
+    /**
+     * @brief Sends a mouse key down or key up command to mpv.
+     *
+     * @param key The mpv mouse key name, including modifiers.
+     * @param pressed true to send keydown, false to send keyup.
+     * @return true if the command was queued, false otherwise.
+     */
+    bool sendMouseKey(const QByteArray &key, bool pressed);
+
+    /**
      * @brief Create an mpv instance for encoding.
      *
      * @param argString The argument string to pass during loadfile.
@@ -515,4 +544,7 @@ private:
 
     /* The file extension of subtitle files */
     QSet<QString> m_subtitleExtensions;
+
+    /* Mouse keys held by mpv, indexed by their Qt button */
+    QHash<Qt::MouseButton, QByteArray> m_pressedMouseButtons;
 };
