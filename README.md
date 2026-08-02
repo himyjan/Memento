@@ -101,7 +101,7 @@ your system.
 
 ## Dependencies
 
-* Qt
+* Qt 6.10 or greater
     * Base
     * SVG
 * mpv

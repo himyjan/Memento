@@ -14,7 +14,7 @@ SLOT="0"
 IUSE="kimageformats mecab widgets"
 
 DEPEND="
-	>=dev-qt/qtbase-6.9.0:6
+	>=dev-qt/qtbase-6.10.0:6
 	dev-db/sqlite
 	dev-libs/json-c
 	dev-libs/libzip

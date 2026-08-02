@@ -20,10 +20,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install libmpv-dev libsqlite3-dev libmecab-dev mecab-ipadic libjson-c-dev libzip-dev mesa-common-dev
 
-    - name: Install Qt 6.9
+    - name: Install Qt 6.10
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.9.*'
+        version: '6.10.*'
         host: 'linux'
         target: 'desktop'
         install-deps: 'true'
