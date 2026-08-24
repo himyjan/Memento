@@ -44,6 +44,7 @@
 #include "anki/ankiconfig.h"
 #include "anki/ankifieldlistmodel.h"
 #include "anki/ankiprofile.h"
+#include "audio/audiofiles.h"
 #include "audio/audioplayer.h"
 #include "definition/structuredrichtext.h"
 #include "dict/dictionary.h"
@@ -140,6 +141,7 @@ static void registerQmlTypes(Context &context)
 
     /* Audio Types */
 
+    qmlRegisterType<AudioFiles>(MEMENTO_URI, 1, 0, "AudioFiles");
     qmlRegisterSingletonInstance<AudioPlayer>(
         MEMENTO_URI, 1, 0, "AudioPlayer", context.audioPlayer()
     );

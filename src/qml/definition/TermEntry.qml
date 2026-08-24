@@ -116,11 +116,12 @@ Item {
 
     AudioFiles {
         id: audioFiles
+        settings: MementoSettings
         term: root.term
         onLoadStateChanged: {
             if (!root.term?.autoPlay ||
-                    audioFiles.loadState !== AudioFiles.LoadState.Loaded ||
-                    audioFiles.files.count === 0)
+                    audioFiles.loadState !== AudioFiles.Loaded ||
+                    audioFiles.files.length === 0)
             {
                 return;
             }
@@ -283,15 +284,16 @@ Item {
                                  root.term &&
                                  root.term.ankiChecked &&
                                  (root.term.addableExpression || root.term.addableReading)
-                        enabled: audioFiles.loadState === AudioFiles.LoadState.Loaded &&
+                        enabled: audioFiles.loadState === AudioFiles.Loaded &&
                                  root.term &&
                                  !root.term.ankiAdding
                         icon.name: MementoSettings.interfaceSystemIcons ? "list-add" : null
                         icon.source: Utils.toImageProvider("add", MementoPalette.text)
 
                         onClicked: {
-                            const audioSource = audioFiles.files.get(0);
-                            if (audioSource.exists)
+                            const audioSource = audioFiles.files.length > 0 ?
+                                audioFiles.files[0] : null;
+                            if (audioSource?.exists)
                             {
                                 root.term.audioSourceName = audioSource.name;
                                 root.term.audioUrl = audioSource.url;
@@ -306,13 +308,13 @@ Item {
                             Instantiator {
                                 model: audioFiles.files
                                 delegate: MenuItem {
-                                    text: model.name
-                                    enabled: model.exists
-                                    icon.source: Utils.toImageProvider(model.exists ? "volume-on" : "volume-off", MementoPalette.text)
+                                    text: modelData.name
+                                    enabled: modelData.exists
+                                    icon.source: Utils.toImageProvider(modelData.exists ? "volume-on" : "volume-off", MementoPalette.text)
                                     onTriggered: {
-                                        root.term.audioSourceName = model.name;
-                                        root.term.audioUrl = model.url;
-                                        root.term.audioSkipHash = model.skipHash;
+                                        root.term.audioSourceName = modelData.name;
+                                        root.term.audioUrl = modelData.url;
+                                        root.term.audioSkipHash = modelData.skipHash;
                                         root.addTerm();
                                     }
                                 }
@@ -325,18 +327,46 @@ Item {
                     ToolButton {
                         id: audioButton
 
-                        /* true when audio has been requested but not yet played */
-                        property bool loading: false
+                        /* Number of audio requests that have not completed */
+                        property int pendingPlayCount: 0
+
+                        readonly property bool loading: pendingPlayCount > 0
+
+                        /**
+                         * Play an audio file.
+                         * @param audioFile The audio file to play.
+                         */
+                        function play(audioFile) {
+                            if (!audioFile?.exists)
+                            {
+                                return;
+                            }
+
+                            ++pendingPlayCount;
+                            AudioPlayer.play(audioFile.url, audioFile.skipHash)
+                                .then(
+                                    function(result)
+                                    {
+                                        pendingPlayCount = Math.max(
+                                            0, pendingPlayCount - 1
+                                        );
+                                        if (audioFile)
+                                        {
+                                            audioFile.exists = result;
+                                        }
+                                    }
+                                );
+                        }
 
                         focusPolicy: Qt.NoFocus
 
                         enabled: !audioButton.loading &&
-                                 audioFiles.loadState === AudioFiles.LoadState.Loaded &&
-                                 audioFiles.files.count > 0
+                                 audioFiles.loadState === AudioFiles.Loaded &&
+                                 audioFiles.files.length > 0
 
                         icon.source: {
-                            if (audioFiles.loadState !== AudioFiles.LoadState.Loaded ||
-                                    (audioFiles.files.count > 0 && audioFiles.files.get(0).exists))
+                            if (audioFiles.loadState !== AudioFiles.Loaded ||
+                                    (audioFiles.files.length > 0 && audioFiles.files[0].exists))
                             {
                                 return Utils.toImageProvider("volume-on", MementoPalette.text);
                             }
@@ -344,22 +374,12 @@ Item {
                         }
 
                         onClicked: {
-                            if (!audioFiles.files.get(0).exists)
+                            if (audioFiles.files.length === 0 ||
+                                    !audioFiles.files[0].exists)
                             {
                                 return;
                             }
-                            audioButton.loading = true;
-                            AudioPlayer.play(audioFiles.files.get(0).url, audioFiles.files.get(0).skipHash)
-                                .then(
-                                    function(result)
-                                    {
-                                        if (audioFiles.files.get(0).exists !== result)
-                                        {
-                                            audioFiles.files.setProperty(0, "exists", result);
-                                        }
-                                        audioButton.loading = false;
-                                    }
-                                );
+                            audioButton.play(audioFiles.files[0]);
                         }
 
                         ContextMenu.menu: Menu {
@@ -369,22 +389,11 @@ Item {
                                 model: audioFiles.files
 
                                 delegate: MenuItem {
-                                    text: model.name
-                                    enabled: model.exists
-                                    icon.source: Utils.toImageProvider(model.exists ? "volume-on" : "volume-off", MementoPalette.text)
+                                    text: modelData.name
+                                    enabled: modelData.exists
+                                    icon.source: Utils.toImageProvider(modelData.exists ? "volume-on" : "volume-off", MementoPalette.text)
                                     onTriggered: {
-                                        audioButton.loading = true;
-                                        AudioPlayer.play(model.url, model.skipHash)
-                                            .then(
-                                                function(result)
-                                                {
-                                                    if (model.exists !== result)
-                                                    {
-                                                        audioFiles.files.setProperty(index, "exists", result);
-                                                    }
-                                                    audioButton.loading = false;
-                                                }
-                                            );
+                                        audioButton.play(modelData);
                                     }
                                 }
 

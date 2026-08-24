@@ -19,3 +19,22 @@ target_link_libraries(
     PUBLIC Qt6::Core
     PUBLIC Qt6::Network
 )
+
+add_library(
+    audiofiles
+    audiofile.cpp
+    audiofile.h
+    audiofiles.cpp
+    audiofiles.h
+)
+target_compile_features(audiofiles PUBLIC cxx_std_20)
+target_compile_options(audiofiles PRIVATE ${MEMENTO_COMPILER_FLAGS})
+target_include_directories(audiofiles PRIVATE ${MEMENTO_INCLUDE_DIRS})
+target_link_libraries(
+    audiofiles
+    PUBLIC dictionary_data
+    PUBLIC Qt6::Core
+    PUBLIC Qt6::Network
+    PUBLIC Qt6::Qml
+    PUBLIC settings
+)

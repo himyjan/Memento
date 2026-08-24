@@ -86,8 +86,6 @@ qt_add_qml_module(
         qml/definition/TermPitch.qml
         qml/dialogs/UpdateDialog.qml
         qml/Main.qml
-        qml/objects/AudioFiles.qml
-        qml/objects/AudioSourceResolver.qml
         qml/objects/CursorTimer.qml
         qml/objects/MoveTimer.qml
         qml/options/AnkiIntegrationHelpWindow.qml
@@ -138,6 +136,7 @@ target_link_libraries(
     PRIVATE "$<$<BOOL:${MEMENTO_SYSTEM_QCORO}>:QCoro::Qml>"
     PRIVATE "$<$<NOT:$<BOOL:${MEMENTO_SYSTEM_QCORO}>>:QCoro6Qml>"
     PRIVATE anki
+    PRIVATE audiofiles
     PRIVATE audioplayer
     PRIVATE clipboard
     PRIVATE coloredimageprovider
